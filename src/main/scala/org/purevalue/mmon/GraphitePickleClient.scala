@@ -5,9 +5,9 @@ import java.net.Socket
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-class GraphitePickleClient(socketProvider: () => Socket) {
+case class Metric(name: String, timestamp: Long, value: String)
 
-  case class Metric(name: String, timestamp: Long, value: String)
+class GraphitePickleClient(socketProvider: () => Socket) {
 
   /**
    * Minimally necessary pickle opcodes.
@@ -27,7 +27,6 @@ class GraphitePickleClient(socketProvider: () => Socket) {
     val pickled: StringBuilder = new StringBuilder
     pickled.append(MARK)
     pickled.append(LIST)
-    import scala.collection.JavaConversions._
     for (tuple <- metrics) { // start the outer tuple
       pickled.append(MARK)
       // the metric name is a string.
@@ -64,10 +63,8 @@ class GraphitePickleClient(socketProvider: () => Socket) {
 
   def writeMetrics(metrics: List[Metric]): Unit = {
     val payload = pickleMetrics(metrics)
-
     val length: Int = payload.length
     val header: Array[Byte] = ByteBuffer.allocate(4).putInt(length).array
-
     var socket: Socket = null
     try {
       socket = socketProvider.apply()
@@ -84,5 +81,3 @@ class GraphitePickleClient(socketProvider: () => Socket) {
     }
   }
 }
-
-// TODO rewrite in pure scala

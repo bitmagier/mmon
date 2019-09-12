@@ -1,13 +1,26 @@
 package org.purevalue.mmon
 
+import java.net.Socket
+
 trait Persister {
-  def save(stockTimeSeries: StockTimeSeries)
+  def write(stockTimeSeries: StockTimeSeries)
 }
 
 class GraphitePersister(host:String, port:Int) extends Persister {
-  val GraphitePrefix: String = "mmon_"
+  val GraphitePrefix = "mmon."
+  val PriceSuffix = ".price"
+  val VolumeSuffix = ".volume"
+  val graphiteClient = new GraphitePickleClient(() => new Socket(host, port))
 
-  override def save(stockTimeSeries: StockTimeSeries): Unit = {
-    // TODO
+  override def write(s: StockTimeSeries): Unit = {
+    graphiteClient.writeMetrics(
+      s.timeSeries.map(
+        r => Metric(
+          GraphitePrefix+s.symbol+PriceSuffix,
+          r.time.toEpochSecond,
+          r.avgPrice.formatted("%f")
+        )
+      )
+    )
   }
 }
