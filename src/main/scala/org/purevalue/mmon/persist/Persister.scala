@@ -1,6 +1,8 @@
-package org.purevalue.mmon
+package org.purevalue.mmon.persist
 
 import java.net.Socket
+
+import org.purevalue.mmon.retrieve.StockTimeSeries
 
 trait Persister {
   def write(stockTimeSeries: StockTimeSeries)

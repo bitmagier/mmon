@@ -1,4 +1,4 @@
-package org.purevalue.mmon
+package org.purevalue.mmon.persist
 
 import java.io.{OutputStream, OutputStreamWriter, Writer}
 import java.net.Socket
