@@ -1,12 +1,10 @@
 package org.purevalue.mmon.retrieve
 
-import java.time.ZonedDateTime
+import java.time.LocalDate
 
-import scala.concurrent.duration.Duration
-
-case class Rate(time:ZonedDateTime, avgPrice:Float, volume:Long)
-case class StockTimeSeries(symbol:String, timeInterval:Duration, timeSeries:List[Rate])
+case class DayRate(time:LocalDate, price:Float, volume:Long)
+case class StockTimeSeriesDaily(symbol:String, timeSeries:List[DayRate])
 
 trait QuotesRetriever {
-  def receiveFull(symbol:String): List[Rate]
+  def receiveFull(symbol:String): StockTimeSeriesDaily
 }
