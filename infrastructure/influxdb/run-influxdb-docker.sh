@@ -13,7 +13,7 @@ docker run -d --name=influxdb \
     --net=influxdb \
      -v $dataRoot/influxdb:/var/lib/influxdb \
      -v $PWD/influxdb.conf:/etc/influxdb/influxdb.conf:ro \
-     influxdb:1.7
+     influxdb:1.7 -config /etc/influxdb/influxdb.conf
 #    -p 8086:8086
 
 # chronograf
