@@ -16,4 +16,4 @@ libraryDependencies ++= Seq(
   "io.circe"  %% "circe-parser"   % circeVersion
 )
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.+" % "test"

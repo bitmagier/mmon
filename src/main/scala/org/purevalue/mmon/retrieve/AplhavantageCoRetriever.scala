@@ -47,27 +47,27 @@ class AplhavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetri
   }
 
   override def receiveFull(symbol: String): StockTimeSeriesDaily = {
-    case class TimeSeries(quotes:List[DayQuote])
-    case class DayQuote(price:Float, volume:Long)
+    case class ATimeSeries(quotes:List[DayQuote])
+    case class AQuote(price:Float, volume:Long)
 
 
     val rawData:String = if (useSampleData) SampleData else readFromApi(symbol)
 
     val json: Json = parser.parse(rawData).toTry.get
     val metaData:Map[String,String] = json.hcursor.downField("Meta Data").as[Map[String,String]].toTry.get
-    implicit val dayQuoteDecoder: Decoder[DayQuote] =
+    implicit val dayQuoteDecoder: Decoder[AQuote] =
       (hCursor: HCursor) => {
         for {
           close <- hCursor.get[Float]("4. close")
           volume <- hCursor.get[Long]("5. volume")
-        } yield DayQuote(close, volume)
+        } yield AQuote(close, volume)
       }
 
-    val timeSeries:Map[String, DayQuote] = json.hcursor.downField("Time Series (Daily)").as[Map[String, DayQuote]].toTry.get
+    val timeSeries:Map[String, AQuote] = json.hcursor.downField("Time Series (Daily)").as[Map[String, AQuote]].toTry.get
 
     StockTimeSeriesDaily(metaData("2. Symbol"),
       timeSeries.map(x =>
-        DayRate(
+        DayQuote(
           LocalDate.parse(x._1, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
           x._2.price,
           x._2.volume
