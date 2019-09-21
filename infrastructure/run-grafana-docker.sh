@@ -3,6 +3,7 @@ docker run \
   -d \
   -p 3000:3000 \
   --name=grafana \
+  --net=influxdb \
   grafana/grafana
 
 #  -e "GF_SERVER_ROOT_URL=http://grafana.server.name" \

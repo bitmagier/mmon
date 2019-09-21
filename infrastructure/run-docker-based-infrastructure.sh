@@ -1,6 +1,7 @@
 #!/bin/basjh
 
-export dataRoot=$PWD/runtime-data
+export base=$PWD
+export dataRoot=$base/runtime-data
 
-influxdb/run-influxdb-docker.sh
-grafana/run-grafana-docker.sh
+./run-influxdb-docker.sh
+./run-grafana-docker.sh

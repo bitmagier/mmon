@@ -12,9 +12,11 @@ mkdir -p $dataRoot/influxdb
 docker run -d --name=influxdb \
     --net=influxdb \
      -v $dataRoot/influxdb:/var/lib/influxdb \
-     -v $PWD/influxdb.conf:/etc/influxdb/influxdb.conf:ro \
+     -v $base/influxdb.conf:/etc/influxdb/influxdb.conf:ro \
      influxdb:1.7 -config /etc/influxdb/influxdb.conf
 #    -p 8086:8086
+# notes:
+# database name: mmon
 
 # chronograf
 # see https://docs.docker.com/samples/library/chronograf/
@@ -27,15 +29,15 @@ docker run -d --name=chronograf \
 
 mkdir -p $dataRoot/kapacitor
 docker run -d --name=kapacitor \
-    -p 9092:9092 \
     -h kapacitor \
     --net=influxdb \
     -v $dataRoot/kapacitor:/var/lib/kapacitor \
     -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
     kapacitor:1.5
+#    -p 9092:9092 \
 
 mkdir -p $dataRoot/telegraf
 docker run -d --name=telegraf \
       --net=influxdb \
-      -v $PWD/telegraf.conf:/etc/telegraf/telegraf.conf:ro \
+      -v $base/telegraf.conf:/etc/telegraf/telegraf.conf:ro \
       telegraf:1.12
