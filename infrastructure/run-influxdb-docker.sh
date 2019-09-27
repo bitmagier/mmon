@@ -11,10 +11,11 @@ docker network create influxdb
 mkdir -p $dataRoot/influxdb
 docker run -d --name=influxdb \
     --net=influxdb \
+     -p 8086:8086 \
      -v $dataRoot/influxdb:/var/lib/influxdb \
      -v $base/influxdb.conf:/etc/influxdb/influxdb.conf:ro \
      influxdb:1.7 -config /etc/influxdb/influxdb.conf
-#    -p 8086:8086
+
 # notes:
 # database name: mmon
 
