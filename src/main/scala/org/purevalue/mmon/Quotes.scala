@@ -3,64 +3,70 @@ package org.purevalue.mmon
 import java.util.Locale.IsoCountryCode
 
 
-case class Index(symbol:String, name:String, members:List[Symbol])
-case class Stock(symbol:String, name:String, industrialSector: String, headquarterLocation:IsoCountryCode)
+case class Index(symbol:String, name:String, symbols:List[String])
+case class Stock(symbol:String, name:String, industrialSector: String, headquarterLocation:String)
 
 object Indicies {
   val Nasdaq100 = Index("NDX", "NASDAQ-100",
-    List(
-      Stock("ATVI", "Activision Blizzard", "Computer- und Videospiele", IsoCountryCode.)
-    ))
+    List("ATVI", )
+  )
 }
 
+object Masterdata {
+  val Stocks :List[Stock] = List (
+    Stock("ATVI", "Activision Blizzard", "Computer- und Videospiele", "Vereinigte Staaten"),
+    Stock("ADBE",	"Adobe Inc.",	"Softwarehersteller", "Vereinigte Staaten"),
+    Stock("ALXN", "Alexion Pharmaceuticals", "Orphan-Arzneimittel", 	"Vereinigte Staaten"),
+  )
+}
+
+
 /*
-ADBE	Adobe Inc.	Softwarehersteller	Vereinigte Staaten
-ALXN	Alexion Pharmaceuticals	Orphan-Arzneimittel	Vereinigte Staaten
-ALGN	Align Technology	Medizintechnik	Vereinigte Staaten
-GOOG, GOOGL	Alphabet Inc.	Internetdienstleistungen	Vereinigte Staaten
-AMD	Advanced Micro Devices	Halbleiter	Vereinigte Staaten
-AMZN	Amazon.com	Online-Versandhändler	Vereinigte Staaten
-AAL	American Airlines Group	Fluggesellschaft	Vereinigte Staaten
-AMGN	Amgen	Biotechnologie	Vereinigte Staaten
-ADI	Analog Devices	Halbleiter	Vereinigte Staaten
-AAPL	Apple	Hard- und Softwareentwicklung	Vereinigte Staaten
-AMAT	Applied Materials	Anlagenbau	Vereinigte Staaten
-ASML	ASML Holding	Halbleiter	Niederlande
-ADSK	Autodesk	Softwarehersteller	Vereinigte Staaten
-ADP	Automatic Data Processing	Personal-Dienstleister	Vereinigte Staaten
-BIDU	Baidu	Suchmaschine	Volksrepublik China
-BIIB	Biogen Idec	Biotechnologie	Vereinigte Staaten
-BMRN	BioMarin Pharmaceutical		Vereinigte Staaten
-BKNG	Booking Holdings	Online-Reiseportale	Vereinigte Staaten
-AVGO	Broadcom Inc.	Halbleiter	Vereinigte Staaten
-CDNS	Cadence Design Systems	Softwarehersteller	Vereinigte Staaten
-CELG	Celgene	Pharmahersteller	Vereinigte Staaten
-CERN	Cerner Corporation	Informationstechnik	Vereinigte Staaten
-CHTR	Charter Communications	Kabelnetze	Vereinigte Staaten
-CHKP	Check Point	Softwareunternehmen	Israel
-CTAS	Cintas Corporation	Textilien	Vereinigte Staaten
-CSCO	Cisco Systems	Telekommunikation	Vereinigte Staaten
-CTXS	Citrix Systems	Software	Vereinigte Staaten
-CTSH	Cognizant Technology Solutions	Software	Vereinigte Staaten
-CMCSA	Comcast	Kabelnetzbetreiber	Vereinigte Staaten
-COST	Costco Wholesale	Großhandel	Vereinigte Staaten
-CSX	CSX Corporation	Eisenbahnunternehmen	Vereinigte Staaten
-CTRP	Ctrip	Touristik	Volksrepublik China
-DLTR	Dollar Tree	Billig-Gemischtwarenläden	Vereinigte Staaten
-EBAY	eBay	Internetauktionshaus	Vereinigte Staaten
-EA	Electronic Arts	Computer- und Videospiele	Vereinigte Staaten
-EXPE	Expedia	Online-Touristik	Vereinigte Staaten
-FB	Facebook	Soziale Medien	Vereinigte Staaten
-FAST	Fastenal	Einzelhandel	Vereinigte Staaten
-FISV	Fiserv	Zahlungsverkehr	Vereinigte Staaten
-FOX, FOXA	Fox Corporation	Medien	Vereinigte Staaten
-GILD	Gilead Sciences	Biotechnologie	Vereinigte Staaten
-HAS	Hasbro	Spieleverlag	Vereinigte Staaten
-HSIC	Henry Schein	Handel	Vereinigte Staaten
-IDXX	Idexx Laboratories	Veterinär-Medizin	Vereinigte Staaten
-ILMN	Illumina	Biotechnologie	Vereinigte Staaten
-INCY	Incyte	Pharmaunternehmen	Vereinigte Staaten
-INTC	Intel	Halbleiter	Vereinigte Staaten
+Stock("ALGN	Align Technology	Medizintechnik	Vereinigte Staaten
+Stock("GOOG, GOOGL	Alphabet Inc.	Internetdienstleistungen	Vereinigte Staaten
+Stock("AMD	Advanced Micro Devices	Halbleiter	Vereinigte Staaten
+Stock("AMZN	Amazon.com	Online-Versandhändler	Vereinigte Staaten
+Stock("AAL	American Airlines Group	Fluggesellschaft	Vereinigte Staaten
+Stock("AMGN	Amgen	Biotechnologie	Vereinigte Staaten
+Stock("ADI	Analog Devices	Halbleiter	Vereinigte Staaten
+Stock("AAPL	Apple	Hard- und Softwareentwicklung	Vereinigte Staaten
+Stock("AMAT	Applied Materials	Anlagenbau	Vereinigte Staaten
+Stock("ASML	ASML Holding	Halbleiter	Niederlande
+Stock("ADSK	Autodesk	Softwarehersteller	Vereinigte Staaten
+Stock("ADP	Automatic Data Processing	Personal-Dienstleister	Vereinigte Staaten
+Stock("BIDU	Baidu	Suchmaschine	Volksrepublik China
+Stock("BIIB	Biogen Idec	Biotechnologie	Vereinigte Staaten
+Stock("BMRN	BioMarin Pharmaceutical		Vereinigte Staaten
+Stock("BKNG	Booking Holdings	Online-Reiseportale	Vereinigte Staaten
+Stock("AVGO	Broadcom Inc.	Halbleiter	Vereinigte Staaten
+Stock("CDNS	Cadence Design Systems	Softwarehersteller	Vereinigte Staaten
+Stock("CELG	Celgene	Pharmahersteller	Vereinigte Staaten
+Stock("CERN	Cerner Corporation	Informationstechnik	Vereinigte Staaten
+Stock("CHTR	Charter Communications	Kabelnetze	Vereinigte Staaten
+Stock("CHKP	Check Point	Softwareunternehmen	Israel
+Stock("CTAS	Cintas Corporation	Textilien	Vereinigte Staaten
+Stock("CSCO	Cisco Systems	Telekommunikation	Vereinigte Staaten
+Stock("CTXS	Citrix Systems	Software	Vereinigte Staaten
+Stock("CTSH	Cognizant Technology Solutions	Software	Vereinigte Staaten
+Stock("CMCSA	Comcast	Kabelnetzbetreiber	Vereinigte Staaten
+Stock("COST	Costco Wholesale	Großhandel	Vereinigte Staaten
+Stock("CSX	CSX Corporation	Eisenbahnunternehmen	Vereinigte Staaten
+Stock("CTRP	Ctrip	Touristik	Volksrepublik China
+Stock("DLTR	Dollar Tree	Billig-Gemischtwarenläden	Vereinigte Staaten
+Stock("EBAY	eBay	Internetauktionshaus	Vereinigte Staaten
+Stock("EA	Electronic Arts	Computer- und Videospiele	Vereinigte Staaten
+Stock("EXPE	Expedia	Online-Touristik	Vereinigte Staaten
+Stock("FB	Facebook	Soziale Medien	Vereinigte Staaten
+Stock("FAST	Fastenal	Einzelhandel	Vereinigte Staaten
+Stock("FISV	Fiserv	Zahlungsverkehr	Vereinigte Staaten
+Stock("FOX, FOXA	Fox Corporation	Medien	Vereinigte Staaten
+Stock("GILD	Gilead Sciences	Biotechnologie	Vereinigte Staaten
+Stock("HAS	Hasbro	Spieleverlag	Vereinigte Staaten
+Stock("HSIC	Henry Schein	Handel	Vereinigte Staaten
+Stock("IDXX	Idexx Laboratories	Veterinär-Medizin	Vereinigte Staaten
+Stock("ILMN	Illumina	Biotechnologie	Vereinigte Staaten
+Stock("INCY	Incyte	Pharmaunternehmen	Vereinigte Staaten
+Stock("INTC	Intel	Halbleiter	Vereinigte Staaten
 INTU	Intuit	Standardanwendungssoftware	Vereinigte Staaten
 ISRG	Intuitive Surgical	Medizintechnik	Vereinigte Staaten
 JBHT	J. B. Hunt	Spedition	Vereinigte Staaten

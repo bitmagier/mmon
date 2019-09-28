@@ -3,4 +3,4 @@
 .jar
 /project/
 /target/
-/infrastructure/runtime-data/*
+/infrastructure/dev/runtime-data/*
