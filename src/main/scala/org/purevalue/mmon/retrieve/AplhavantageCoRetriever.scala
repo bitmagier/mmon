@@ -3,6 +3,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import io.circe.{Decoder, HCursor, Json, parser}
+import org.purevalue.mmon.{DayQuote, TimeSeriesDaily}
 
 import scala.io.Source
 
@@ -46,7 +47,7 @@ class AplhavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetri
     result
   }
 
-  override def receiveFull(symbol: String): StockTimeSeriesDaily = {
+  override def receiveFull(symbol: String): TimeSeriesDaily = {
     case class ATimeSeries(quotes:List[DayQuote])
     case class AQuote(price:Float, volume:Long)
 
@@ -65,7 +66,7 @@ class AplhavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetri
 
     val timeSeries:Map[String, AQuote] = json.hcursor.downField("Time Series (Daily)").as[Map[String, AQuote]].toTry.get
 
-    StockTimeSeriesDaily(metaData("2. Symbol"),
+    TimeSeriesDaily(metaData("2. Symbol"),
       timeSeries.map(x =>
         DayQuote(
           LocalDate.parse(x._1, DateTimeFormatter.ofPattern("yyyy-MM-dd")),

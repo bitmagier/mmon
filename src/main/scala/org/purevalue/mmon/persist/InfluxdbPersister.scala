@@ -1,20 +1,18 @@
 package org.purevalue.mmon.persist
-import org.purevalue.mmon.retrieve.StockTimeSeriesDaily
 import com.paulgoldbaum.influxdbclient._
+import org.purevalue.mmon.TimeSeriesDaily
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Success
 
 // https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
-class InfluxdbPersister extends Persister {
-  var influxdb: InfluxDB
-  var db: Database
+class InfluxdbPersister extends TimeSeriesPersister {
+  var influxdb: InfluxDB = _
+  var db: Database = _
 
   influxdb.close()
 
-
-
-  def open(): Unit = {
+  private def open: Unit = {
     influxdb = InfluxDB.connect("localhost", 8086)
     db = influxdb.selectDatabase("my_database")
     db.exists().andThen {
@@ -22,13 +20,14 @@ class InfluxdbPersister extends Persister {
     }
   }
 
-  def close() = {
+  private def close = {
     db.close()
   }
 
-  override def write(s: StockTimeSeriesDaily): Unit = {
-    open()
-    Point("quote_"+s.symbol)
-    close()
+  override def write(s: TimeSeriesDaily): Unit = {
+    open
+    Point(s.symbol)
+    // TODO
+    close
   }
 }

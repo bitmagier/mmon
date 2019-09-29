@@ -1,12 +1,9 @@
 package org.purevalue.mmon.persist
 
-import java.net.Socket
-import java.time.{LocalTime, ZoneOffset}
+import org.purevalue.mmon.TimeSeriesDaily
 
-import org.purevalue.mmon.retrieve.StockTimeSeriesDaily
-
-trait Persister {
-  def write(stockTimeSeries: StockTimeSeriesDaily)
+trait TimeSeriesPersister {
+  def write(stockTimeSeries: TimeSeriesDaily)
 }
 
 //class GraphitePersister(host:String, port:Int) extends Persister {
