@@ -1,6 +1,6 @@
 package org.purevalue.mmon.retrieve
 
-import java.time.LocalDate
+import org.purevalue.mmon.TimeSeriesDaily
 
 
 trait QuotesRetriever {

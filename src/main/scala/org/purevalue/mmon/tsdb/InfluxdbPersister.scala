@@ -1,4 +1,4 @@
-package org.purevalue.mmon.persist
+package org.purevalue.mmon.tsdb
 import com.paulgoldbaum.influxdbclient._
 import org.purevalue.mmon.TimeSeriesDaily
 

@@ -1,4 +1,4 @@
-package org.purevalue.mmon.persist
+package org.purevalue.mmon.tsdb
 
 import org.purevalue.mmon.TimeSeriesDaily
 
