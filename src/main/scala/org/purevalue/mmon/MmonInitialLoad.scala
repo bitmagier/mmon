@@ -1,8 +1,9 @@
 package org.purevalue.mmon
 
+import org.purevalue.mmon.rdb.indicator.Indices
 import org.purevalue.mmon.tsdb.InfluxdbPersister
 
-object Mmon {
+object MmonInitialLoad {
 
   def importRawData() = {
     createTables()
