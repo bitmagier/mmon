@@ -3,18 +3,6 @@
 base="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 dataRoot="$base/runtime-data"
 
-
-mkdir -p "$dataRoot/postgresql"
-docker run -d --name=postgres \
-    -p 5432:5432 \
-    -e POSTGRES_USER=postgres \
-    -e POSTGRES_PASSWORD=WmJLq5T3bKzw \
-    -e POSTGRES_DB=mmon \
-    -v "$base/postgresql.conf":/etc/postgresql/postgresql.conf \
-    -v "$dataRoot/postgresql":/var/lib/postgresql \
-    postgres:11 -c 'config_file=/etc/postgresql/postgresql.conf'
-
-
 docker network create influxdb
 
 # influxdb

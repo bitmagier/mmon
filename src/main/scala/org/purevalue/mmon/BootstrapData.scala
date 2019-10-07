@@ -1,15 +1,15 @@
 package org.purevalue.mmon
 
-sealed trait Sector
-object Sector extends Enum[Sector] {
-  case object Industrials extends Sector  
-  case object Healthcare extends Sector
-  case object IT extends Sector
-  case object ConsumerDiscretionary extends Sector
-  case object Financials extends Sector
-  case object Materials extends Sector
-  case object RealEstate extends Sector
-  case object ConsumerStaples extends Sector
+sealed abstract class Sector(val name:String)
+object Sector extends Enum {
+  case object Industrials extends Sector("Industrials")
+  case object Healthcare extends Sector("Healthcare")
+  case object IT extends Sector("IT")
+  case object ConsumerDiscretionary extends Sector("ConsumerDiscretionary")
+  case object Financials extends Sector("Financials")
+  case object Materials extends Sector("Materials")
+  case object RealEstate extends Sector("RealEstate")
+  case object ConsumerStaples extends Sector("ConsumerStaples")
 }
 import Sector._
 
