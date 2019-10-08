@@ -1,5 +1,7 @@
 package org.purevalue.mmon.tsdb
 
+import java.time.ZoneOffset
+
 import com.paulgoldbaum.influxdbclient._
 import org.purevalue.mmon.{Company, TimeSeriesDaily}
 
@@ -31,12 +33,19 @@ class InfluxdbPersister extends TimeSeriesPersister {
       throw new IllegalArgumentException()
     }
 
-    val fieldNames = List("quote", "volume")
-    val tagNames = List("symbol", "isin", "wkn", "name", "sector")
 
-    val timestamp =
+    for (q <- s.timeSeries) {
+      val timestamp:Long = q.time.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
+      Point(measurement, timestamp, List(
+        Tag("symbol", c.symbol),
+        Tag("name", c.name),
+        Tag("sector", c.sector.name)
+      ), List(
+        DoubleField("price", q.price),
+        LongField("volume", q.volume)
+      ))
+    }
 
-      Point()
     // TODO
     close
   }

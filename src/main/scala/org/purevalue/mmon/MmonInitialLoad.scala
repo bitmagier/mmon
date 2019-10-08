@@ -16,7 +16,6 @@ object MmonInitialLoad {
   }
 
   def main(args: Array[String]): Unit = {
-//    createTables()
     importCompanyQuotes()
 //    applyIndicators()
   }
