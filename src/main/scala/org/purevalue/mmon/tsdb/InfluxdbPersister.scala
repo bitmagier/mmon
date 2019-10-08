@@ -1,6 +1,7 @@
 package org.purevalue.mmon.tsdb
+
 import com.paulgoldbaum.influxdbclient._
-import org.purevalue.mmon.TimeSeriesDaily
+import org.purevalue.mmon.{Company, TimeSeriesDaily}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Success
@@ -12,7 +13,7 @@ class InfluxdbPersister extends TimeSeriesPersister {
 
   influxdb.close()
 
-  private def open: Unit = {
+  private def open(): Unit = {
     influxdb = InfluxDB.connect("localhost", 8086)
     db = influxdb.selectDatabase("my_database")
     db.exists().andThen {
@@ -20,13 +21,22 @@ class InfluxdbPersister extends TimeSeriesPersister {
     }
   }
 
-  private def close = {
+  private def close() = {
     db.close()
   }
 
-  override def write(s: TimeSeriesDaily): Unit = {
-    open
-    Point(s.symbol)
+  override def write(c: Company, s: TimeSeriesDaily): Unit = {
+    open()
+    if (!c.symbol.equals(s.symbol)) {
+      throw new IllegalArgumentException()
+    }
+
+    val fieldNames = List("quote", "volume")
+    val tagNames = List("symbol", "isin", "wkn", "name", "sector")
+
+    val timestamp =
+
+      Point()
     // TODO
     close
   }
