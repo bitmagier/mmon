@@ -31,14 +31,14 @@ docker run -d --name=chronograf \
       -v "$dataRoot/chronograf":/var/lib/chronograf \
       chronograf:1.7 --influxdb-url=http://influxdb:8086
 
-#mkdir -p "$dataRoot/kapacitor"
-#docker run -d --name=kapacitor \
-#    -h kapacitor \
-#    --net=influxdb \
-#    -v "$dataRoot/kapacitor:/var/lib/kapacitor" \
-#    -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
-#    kapacitor:1.5
-##    -p 9092:9092 \
+mkdir -p "$dataRoot/kapacitor"
+docker run -d --name=kapacitor \
+    -h kapacitor \
+    --net=influxdb \
+    -v "$dataRoot/kapacitor:/var/lib/kapacitor" \
+    -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
+    kapacitor:1.5
+#    -p 9092:9092 \
 #
 #mkdir -p "$dataRoot/telegraf"
 #docker run -d --name=telegraf \
