@@ -2,8 +2,9 @@ package org.purevalue.mmon.tsdb
 
 import java.time.ZoneOffset
 
+import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
-import org.purevalue.mmon.{Company, TimeSeriesDaily}
+import org.purevalue.mmon.{Company, DayQuote, TimeSeriesDaily}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Success
@@ -33,20 +34,23 @@ class InfluxdbPersister extends TimeSeriesPersister {
       throw new IllegalArgumentException()
     }
 
+    val points = s.timeSeries.map(q => toMeasurementPoint(c,q))
+    db.bulkWrite(points, Precision.HOURS, Consistency.QUORUM)
 
-    for (q <- s.timeSeries) {
-      val timestamp:Long = q.time.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
-      Point(measurement, timestamp, List(
+    close()
+  }
+
+  def toMeasurementPoint(c:Company, q:DayQuote): Point = {
+    val timestamp: Long = q.time.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
+    Point(MarketQuotesDaily,
+      timestamp,
+      List(
         Tag("symbol", c.symbol),
         Tag("name", c.name),
-        Tag("sector", c.sector.name)
-      ), List(
+        Tag("sector", c.sector.name)),
+      List(
         DoubleField("price", q.price),
         LongField("volume", q.volume)
       ))
-    }
-
-    // TODO
-    close
   }
 }
