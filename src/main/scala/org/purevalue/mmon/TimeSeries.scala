@@ -11,4 +11,3 @@ object Company {
     Company(symbol, null, null, name, sector)
   }
 }
-case class ReportingGroup(name:String, members:List[Company])
