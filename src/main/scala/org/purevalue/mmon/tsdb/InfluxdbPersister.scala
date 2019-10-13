@@ -10,7 +10,6 @@ import org.purevalue.mmon.{Company, DayQuote, TimeSeriesDaily}
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
 
 // https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
 class InfluxdbPersister(val hostName: String, val dbName: String) {

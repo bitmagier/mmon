@@ -10,7 +10,6 @@ docker network create influxdb
 # 8086 HTTP API port
 # 8083 Administrator interface port, if it is enabled
 ## 2003 Graphite support, if it is enabled
-#
 mkdir -p "$dataRoot/influxdb"
 docker run -d --name=influxdb \
     --net=influxdb \
@@ -31,15 +30,17 @@ docker run -d --name=chronograf \
       -v "$dataRoot/chronograf":/var/lib/chronograf \
       chronograf:1.7 --influxdb-url=http://influxdb:8086
 
-mkdir -p "$dataRoot/kapacitor"
-docker run -d --name=kapacitor \
-    -h kapacitor \
-    --net=influxdb \
-    -v "$dataRoot/kapacitor:/var/lib/kapacitor" \
-    -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
-    kapacitor:1.5
-#    -p 9092:9092 \
-#
+# NOT YET USED
+#mkdir -p "$dataRoot/kapacitor"
+#docker run -d --name=kapacitor \
+#    -h kapacitor \
+#    --net=influxdb \
+#    -v "$dataRoot/kapacitor:/var/lib/kapacitor" \
+#    -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
+#    kapacitor:1.5
+##    -p 9092:9092 \
+
+# UNUSED
 #mkdir -p "$dataRoot/telegraf"
 #docker run -d --name=telegraf \
 #      --net=influxdb \
@@ -49,6 +50,6 @@ docker run -d --name=kapacitor \
 docker run -d --name=grafana \
   -p 3000:3000 \
   --net=influxdb \
-  grafana/grafana \
+  grafana/grafana
 #  -e "GF_SERVER_ROOT_URL=http://grafana.server.name" \
 #  -e "GF_SECURITY_ADMIN_PASSWORD=secret" \

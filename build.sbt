@@ -17,4 +17,4 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.+" % "test"
-libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.1"
+libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.+"
