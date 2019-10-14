@@ -1,15 +1,18 @@
 package org.purevalue.mmon.retrieve
+import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import io.circe.{Decoder, HCursor, Json, parser}
 import org.purevalue.mmon.{DayQuote, TimeSeriesDaily}
+import org.slf4j.LoggerFactory
 
-import scala.io.Source
+import scala.io.{BufferedSource, Source}
 
 
 
-class AplhavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetriever {
+class AlphavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetriever {
+  private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
 
   val SampleData ="""{
   "Meta Data": {
@@ -37,21 +40,26 @@ class AplhavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetri
   }
 }"""
 
+  private val AlphavantageHostname = "www.alphavantage.co"
+  private val ApiKey = "TYEY6NJ2ZS8UXGB8"
 
-  def readFromApi(symbol:String): String = {
-    val ApiKey = "TYEY6NJ2ZS8UXGB8"
-    val ApiEndpoint = s"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$ApiKey"
-    val reader = Source.fromURL(ApiEndpoint)
-    val result = reader.mkString
-    reader.close()
-    result
+  private def apiEndpoint(apiKey:String, symbol:String):URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
+
+  private def readFromApi(symbol:String): String = {
+    var reader : BufferedSource = null
+    try {
+      reader = Source.fromURL(apiEndpoint(ApiKey,symbol))
+      reader.mkString
+    } finally {
+      if (reader != null) reader.close()
+    }
   }
 
   override def receiveFull(symbol: String): TimeSeriesDaily = {
     case class ATimeSeries(quotes:List[DayQuote])
     case class AQuote(price:Float, volume:Long)
 
-
+    log.info(s"Retrieving full stock quotes for symbol '$symbol' from $AlphavantageHostname")
     val rawData:String = if (useSampleData) SampleData else readFromApi(symbol)
 
     val json: Json = parser.parse(rawData).toTry.get

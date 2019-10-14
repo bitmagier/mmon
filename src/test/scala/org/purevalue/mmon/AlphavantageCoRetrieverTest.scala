@@ -2,12 +2,12 @@ package org.purevalue.mmon
 
 import java.time.LocalDate
 
-import org.purevalue.mmon.retrieve.AplhavantageCoRetriever
+import org.purevalue.mmon.retrieve.AlphavantageCoRetriever
 import org.scalatest.FunSuite
 
 class AlphavantageCoRetrieverTest extends FunSuite {
   test("Decoder working with sample data") {
-    val s:TimeSeriesDaily = new AplhavantageCoRetriever(true).receiveFull("_")
+    val s:TimeSeriesDaily = new AlphavantageCoRetriever(true).receiveFull("_")
     println(s)
     assert(s.symbol == "MSFT")
     assert(s.timeSeries.size == 2)
