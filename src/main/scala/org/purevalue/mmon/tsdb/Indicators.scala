@@ -26,7 +26,6 @@ object Indicators {
 
   val all: List[InfluxIndicator] = List(
     SectorHarmonyIndicator(Sector.IT),
-    SectorHarmonyIndicator(Sector.Industrials),
-    SectorHarmonyIndicator(Sector.Utilities)
+    SectorHarmonyIndicator(Sector.Industrials)
   )
 }
