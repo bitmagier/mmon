@@ -1,4 +1,5 @@
 package org.purevalue.mmon.retrieve
+import java.io.{BufferedReader, BufferedWriter, File, FileReader, FileWriter}
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -11,8 +12,10 @@ import scala.io.{BufferedSource, Source}
 
 
 
-class AlphavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetriever {
+class AlphavantageCoRetriever(useSampleData:Boolean = false, useLocalCachedData:Boolean = false) extends QuotesRetriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
+  private val updateLocalCache = true
+  private val localCacheDir = "/tmp/mmon-cache"
 
   val SampleData ="""{
   "Meta Data": {
@@ -45,42 +48,77 @@ class AlphavantageCoRetriever(useSampleData:Boolean = false) extends QuotesRetri
 
   private def apiEndpoint(apiKey:String, symbol:String):URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
 
+
   private def readFromApi(symbol:String): String = {
     var reader : BufferedSource = null
     try {
       reader = Source.fromURL(apiEndpoint(ApiKey,symbol))
-      reader.mkString
+      val result = reader.mkString
+      updateCache(symbol, result)
+      result
     } finally {
       if (reader != null) reader.close()
     }
   }
 
-  override def receiveFull(symbol: String): TimeSeriesDaily = {
+  private def parse(rawData: String): TimeSeriesDaily = {
     case class ATimeSeries(quotes:List[DayQuote])
     case class AQuote(price:Float, volume:Long)
 
-    log.info(s"Retrieving full stock quotes for symbol '$symbol' from $AlphavantageHostname")
-    val rawData:String = if (useSampleData) SampleData else readFromApi(symbol)
+    try {
+      val json: Json = parser.parse(rawData).toTry.get
+      val metaData: Map[String, String] = json.hcursor.downField("Meta Data").as[Map[String, String]].toTry.get
+      implicit val dayQuoteDecoder: Decoder[AQuote] =
+        (hCursor: HCursor) => {
+          for {
+            close <- hCursor.get[Float]("4. close")
+            volume <- hCursor.get[Long]("5. volume")
+          } yield AQuote(close, volume)
+        }
 
-    val json: Json = parser.parse(rawData).toTry.get
-    val metaData:Map[String,String] = json.hcursor.downField("Meta Data").as[Map[String,String]].toTry.get
-    implicit val dayQuoteDecoder: Decoder[AQuote] =
-      (hCursor: HCursor) => {
-        for {
-          close <- hCursor.get[Float]("4. close")
-          volume <- hCursor.get[Long]("5. volume")
-        } yield AQuote(close, volume)
-      }
+      val timeSeries: Map[String, AQuote] = json.hcursor.downField("Time Series (Daily)").as[Map[String, AQuote]].toTry.get
 
-    val timeSeries:Map[String, AQuote] = json.hcursor.downField("Time Series (Daily)").as[Map[String, AQuote]].toTry.get
-
-    TimeSeriesDaily(metaData("2. Symbol"),
-      timeSeries.map(x =>
-        DayQuote(
-          LocalDate.parse(x._1, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-          x._2.price,
-          x._2.volume
-        )).toList
-    )
+      TimeSeriesDaily(metaData("2. Symbol"),
+        timeSeries.map(x =>
+          DayQuote(
+            LocalDate.parse(x._1, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+            x._2.price,
+            x._2.volume
+          )).toList
+      )
+    } catch {
+      case e:Exception =>
+        log.error(s"Could not parse quote raw data:\n$rawData", e)
+        throw e
+    }
   }
+
+  override def receiveFull(symbol: String): TimeSeriesDaily = {
+    log.info(s"Retrieving full stock quotes for symbol '$symbol' from $AlphavantageHostname")
+    val rawData:String =
+      if (useSampleData) SampleData
+      else if (useLocalCachedData) readFromLocalCache(symbol)
+      else readFromApi(symbol)
+    parse(rawData)
+  }
+
+  private def updateCache(symbol: String, rawData: String) = {
+    val w = new BufferedWriter(new FileWriter(cacheFile(symbol)))
+    w.write(rawData)
+    w.close()
+  }
+
+  def readFromLocalCache(symbol: String): String = {
+    val f = cacheFile(symbol)
+    if (f.exists()) {
+      val s = Source.fromFile(f)
+      val result = s.mkString
+      s.close()
+      result
+    } else {
+      throw new Exception(s"No local cached data for symbol '$symbol' present")
+    }
+  }
+
+  private def cacheFile(symbol:String): File = new File(localCacheDir, symbol + ".raw")
 }

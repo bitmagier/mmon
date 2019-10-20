@@ -15,19 +15,33 @@ import scala.concurrent.duration.Duration
 // https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
 class InfluxdbPersister(val hostName: String, val dbName: String) {
   private val log = LoggerFactory.getLogger(classOf[InfluxdbPersister])
-  private val AsyncTimeout: Duration = Duration(1, TimeUnit.SECONDS)
+  private val AsyncTimeout: Duration = Duration(30, TimeUnit.SECONDS)
   private var influxdb: InfluxDB = _
   private var db: Database = _
+
+  def dropDatabase() = {
+    try {
+      open()
+      Await.result(db.drop(), AsyncTimeout)
+      log.info(s"Influx database '$dbName' on '$hostName' dropped")
+    } finally {
+      close()
+    }
+  }
 
   def write(c: Company, s: TimeSeriesDaily): Unit = {
     if (!c.symbol.equals(s.symbol)) {
       throw new IllegalArgumentException("Symbols mismatch!")
     }
-    log.info(s"Storing quotes for symbol '${}' into influxdb")
+    log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
     try {
       open()
       val points = s.timeSeries.map(q => toMeasurementPoint(c, q))
-      db.bulkWrite(points, Precision.HOURS, Consistency.QUORUM)
+      if (Await.result(db.bulkWrite(points, Precision.SECONDS, Consistency.QUORUM), AsyncTimeout)) {
+        log.debug(s"Quotes for symbol '${s.symbol}' successfully persisted")
+      } else {
+        log.warn(s"Could not persist quotes for symbol '${s.symbol}' - retrying ...") // TODO implement retry
+      }
     } finally {
       close()
     }
@@ -52,7 +66,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
   }
 
   private def toMeasurementPoint(c: Company, q: DayQuote): Point = {
-    val timestamp: Long = q.time.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli
+    val timestamp: Long = q.time.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
     Point(
       Influx.Measurement,
       timestamp,
@@ -62,7 +76,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
         Tag(Influx.TagSector, c.sector.name)),
       List(
         DoubleField(Influx.FieldPrice, q.price),
-        LongField(Influx.FieldVolume, q.volume)
+        DoubleField(Influx.FieldVolume, q.volume)
       ))
   }
 
@@ -72,6 +86,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
     val exists = Await.result(db.exists(), AsyncTimeout)
     if (!exists) {
       Await.ready(db.create(), AsyncTimeout)
+      log.info(s"Influx database '$dbName' on '$hostName' created")
     }
   }
 
@@ -88,7 +103,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
       try {
         influxdb.close()
       } catch {
-        case _:Throwable =>
+        case _:Throwable => // ignore this
       }
       influxdb = null
     }

@@ -1,12 +1,15 @@
 package org.purevalue.mmon.tsdb
 
 object Influx {
-  val Measurement = "market_quotes_daily"
+  val influxHostName = "localhost"
+  val influxDbName = "mmon"
+
+  val Measurement = "MarketQuotesDaily"
 
   val TagSymbol: String = "symbol"
   val TagName: String = "name"
   val TagSector: String = "sector"
 
-  val FieldPrice:String = "Price"
-  val FieldVolume:String = "Volume"
+  val FieldPrice:String = "price"
+  val FieldVolume:String = "volume"
 }
