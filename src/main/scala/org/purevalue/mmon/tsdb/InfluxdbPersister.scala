@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
-import org.purevalue.mmon.{Company, DayQuote, TimeSeriesDaily}
+import org.purevalue.mmon.{Company, Config, DayQuote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
@@ -15,11 +15,11 @@ import scala.concurrent.duration.Duration
 // https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
 class InfluxdbPersister(val hostName: String, val dbName: String) {
   private val log = LoggerFactory.getLogger(classOf[InfluxdbPersister])
-  private val AsyncTimeout: Duration = Duration(30, TimeUnit.SECONDS)
+  private val AsyncTimeout = Duration(Config.influxAsyncWriteTimeout.toMillis, TimeUnit.MILLISECONDS)
   private var influxdb: InfluxDB = _
   private var db: Database = _
 
-  def dropDatabase() = {
+  def dropDatabase():Unit = {
     try {
       open()
       Await.result(db.drop(), AsyncTimeout)
@@ -31,7 +31,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
 
   def write(c: Company, s: TimeSeriesDaily): Unit = {
     if (!c.symbol.equals(s.symbol)) {
-      throw new IllegalArgumentException("Symbols mismatch!")
+      throw new IllegalArgumentException(s"Symbols mismatch! ('${c.symbol}' versus '${s.symbol}')")
     }
     log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
     try {

@@ -240,7 +240,7 @@ object BootstrapData {
     Company("HAL", "Halliburton Co.", Energy),
     Company("HBI", "Hanesbrands Inc", ConsumerDiscretionary),
     Company("HOG", "Harley-Davidson", ConsumerDiscretionary),
-    Company("HRS", "Harris Corporation", IT),
+    Company("LHX", "L3Harris Technologies", IT),
     Company("HIG", "Hartford Financial Svc.Gp.", Financials),
     Company("HAS", "Hasbro Inc.", ConsumerDiscretionary),
     Company("HCA", "HCA Holdings", Healthcare),
@@ -295,7 +295,6 @@ object BootstrapData {
     Company("KHC", "Kraft Heinz Co", ConsumerStaples),
     Company("KR", "Kroger Co.", ConsumerStaples),
     Company("LB", "L Brands Inc.", ConsumerDiscretionary),
-    Company("LLL", "L-3 Communications Holdings", Industrials),
     Company("LH", "Laboratory Corp. of America Holding", Healthcare),
     Company("LRCX", "Lam Research", IT),
     Company("LEG", "Leggett & Platt", ConsumerDiscretionary),
@@ -408,7 +407,6 @@ object BootstrapData {
     Company("RJF", "Raymond James Financial Inc.", Financials),
     Company("RTN", "Raytheon Co.", Industrials),
     Company("O", "Realty Income Corporation", RealEstate),
-    Company("RHT", "Red Hat Inc.", IT),
     Company("REG", "Regency Centers Corporation", RealEstate),
     Company("REGN", "Regeneron", Healthcare),
     Company("RF", "Regions Financial Corp.", Financials),
@@ -524,3 +522,6 @@ object BootstrapData {
     Company("ZION", "Zions Bancorp", Financials),
     Company("ZTS", "Zoetis", Healthcare))
 }
+
+// TODO update this list of S&P500 companies; this list may be incomplete
+

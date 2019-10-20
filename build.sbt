@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.+" % "test"
 libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.+"
+libraryDependencies += "com.typesafe" % "config" % "1.4.+"
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.+"
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.+"
 

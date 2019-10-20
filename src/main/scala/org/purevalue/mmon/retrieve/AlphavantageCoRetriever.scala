@@ -1,23 +1,29 @@
 package org.purevalue.mmon.retrieve
-import java.io.{BufferedReader, BufferedWriter, File, FileReader, FileWriter}
+
+import java.io.{BufferedWriter, File, FileWriter}
 import java.net.URL
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
+import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
-import org.purevalue.mmon.{DayQuote, TimeSeriesDaily}
+import org.purevalue.mmon.{Config, DayQuote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
 
 
-
-class AlphavantageCoRetriever(useSampleData:Boolean = false, useLocalCachedData:Boolean = false) extends QuotesRetriever {
+class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends QuotesRetriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
-  private val updateLocalCache = true
-  private val localCacheDir = "/tmp/mmon-cache"
+  private val localCacheDir = new File(Option(System.getProperty("java.io.tmpdir")).getOrElse("/tmp") + "/mmon-cache")
+  private var lastApiCallTime: LocalDateTime = _
 
-  val SampleData ="""{
+  private val AlphavantageHostname = "www.alphavantage.co"
+  private val ApiKey = Config.alphavantageApiKey
+  private val MaxApiCallRate = Config.alphavantageApiCallDelay
+
+
+  private val SampleData =
+    """{
   "Meta Data": {
     "1. Information": "Daily Prices (open, high, low, close) and Volumes",
     "2. Symbol": "MSFT",
@@ -43,16 +49,29 @@ class AlphavantageCoRetriever(useSampleData:Boolean = false, useLocalCachedData:
   }
 }"""
 
-  private val AlphavantageHostname = "www.alphavantage.co"
-  private val ApiKey = "TYEY6NJ2ZS8UXGB8"
+  override def receiveFull(symbol: String): TimeSeriesDaily = {
+    val rawData: String =
+      if (useSampleData) SampleData
+      else if (preferLocalCachedData) readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
+      else readFromApi(symbol)
+    parse(rawData)
+  }
 
-  private def apiEndpoint(apiKey:String, symbol:String):URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
+  private def apiEndpoint(apiKey: String, symbol: String): URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
 
+  private def readFromApi(symbol: String): String = {
+    log.info(s"Retrieving stock quotes for symbol '$symbol' from $AlphavantageHostname")
+    if (lastApiCallTime != null) {
+      val toWait = MaxApiCallRate.minus(Duration.between(lastApiCallTime, LocalDateTime.now()))
+      if (toWait.toMillis > 0)
+        log.info(s"Waiting ${toWait.getSeconds} seconds before next API call to $AlphavantageHostname ...")
+        Thread.sleep(toWait.toMillis)
+    }
 
-  private def readFromApi(symbol:String): String = {
-    var reader : BufferedSource = null
+    var reader: BufferedSource = null
     try {
-      reader = Source.fromURL(apiEndpoint(ApiKey,symbol))
+      reader = Source.fromURL(apiEndpoint(ApiKey, symbol))
+      lastApiCallTime = LocalDateTime.now()
       val result = reader.mkString
       updateCache(symbol, result)
       result
@@ -62,8 +81,8 @@ class AlphavantageCoRetriever(useSampleData:Boolean = false, useLocalCachedData:
   }
 
   private def parse(rawData: String): TimeSeriesDaily = {
-    case class ATimeSeries(quotes:List[DayQuote])
-    case class AQuote(price:Float, volume:Long)
+    case class ATimeSeries(quotes: List[DayQuote])
+    case class AQuote(price: Float, volume: Long)
 
     try {
       val json: Json = parser.parse(rawData).toTry.get
@@ -81,44 +100,51 @@ class AlphavantageCoRetriever(useSampleData:Boolean = false, useLocalCachedData:
       TimeSeriesDaily(metaData("2. Symbol"),
         timeSeries.map(x =>
           DayQuote(
-            LocalDate.parse(x._1, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+            LocalDate.parse(x._1, ISO_LOCAL_DATE),
             x._2.price,
             x._2.volume
           )).toList
       )
     } catch {
-      case e:Exception =>
+      case e: Exception =>
         log.error(s"Could not parse quote raw data:\n$rawData", e)
         throw e
     }
   }
 
-  override def receiveFull(symbol: String): TimeSeriesDaily = {
-    log.info(s"Retrieving full stock quotes for symbol '$symbol' from $AlphavantageHostname")
-    val rawData:String =
-      if (useSampleData) SampleData
-      else if (useLocalCachedData) readFromLocalCache(symbol)
-      else readFromApi(symbol)
-    parse(rawData)
-  }
+  private def updateCache(symbol: String, rawData: String):Unit = {
+    localCacheDir.mkdirs()
+    clearCache(symbol)
 
-  private def updateCache(symbol: String, rawData: String) = {
     val w = new BufferedWriter(new FileWriter(cacheFile(symbol)))
     w.write(rawData)
     w.close()
   }
 
-  def readFromLocalCache(symbol: String): String = {
+  private def clearCache(symbol: String):Unit = {
+    localCacheDir
+      .listFiles((_, file) => file.startsWith(symbol) && file.endsWith(".rawdata"))
+      .foreach {
+        _.delete()
+      }
+  }
+
+  def readFromLocalCache(symbol: String): Option[String] = {
     val f = cacheFile(symbol)
     if (f.exists()) {
+      log.info(s"reading rawdata for symbol $symbol from local cache")
       val s = Source.fromFile(f)
       val result = s.mkString
       s.close()
-      result
+      Option(result)
     } else {
-      throw new Exception(s"No local cached data for symbol '$symbol' present")
+      log.warn(s"no up-to-date local cache file present for '$symbol'")
+      Option.empty
     }
   }
 
-  private def cacheFile(symbol:String): File = new File(localCacheDir, symbol + ".raw")
+  private def cacheFile(symbol: String): File = {
+    val day: String = ISO_LOCAL_DATE.format(LocalDate.now())
+    new File(localCacheDir, s"$symbol-$day.rawdata")
+  }
 }

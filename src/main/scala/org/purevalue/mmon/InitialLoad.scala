@@ -8,15 +8,14 @@ object InitialLoad {
   private val log = LoggerFactory.getLogger("InitialLoad")
   private val persister: InfluxdbPersister = new InfluxdbPersister(Influx.influxHostName, Influx.influxDbName)
 
-  def importCompanyQuotes(useLocalCachedData:Boolean): Unit = {
-    val retriever: QuotesRetriever = new AlphavantageCoRetriever(useLocalCachedData)
+  def importCompanyQuotes(preferLocalCachedData:Boolean): Unit = {
+    val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData=preferLocalCachedData)
     persister.dropDatabase()
     Masterdata.companies
-      .filter(c => c.sector == Sector.IT || c.sector == Sector.Industrials)
+      .filter(c => c.sector == Sector.IT || c.sector == Sector.Industrials) // import is limited to these, because we have a limit of 500 API calls to alphavantage.co per day only
       .foreach { c =>
         val ts = retriever.receiveFull(c.symbol)
         persister.write(c, ts)
-        Thread.sleep(20*1000)
       }
   }
 
@@ -25,9 +24,9 @@ object InitialLoad {
       persister.createOrReplace(i))
   }
 
-  def initialLoad(useLocalCachedData:Boolean = false): Unit = {
+  def initialLoad(preferLocalCachedData:Boolean = false): Unit = {
     try {
-      importCompanyQuotes(useLocalCachedData)
+      importCompanyQuotes(preferLocalCachedData)
       applyIndicators()
     } catch {
       case e: Exception =>
@@ -36,4 +35,3 @@ object InitialLoad {
     }
   }
 }
-

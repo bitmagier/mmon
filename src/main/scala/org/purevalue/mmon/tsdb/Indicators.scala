@@ -23,7 +23,6 @@ case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
 
 
 object Indicators {
-
   val all: List[InfluxIndicator] = List(
     SectorHarmonyIndicator(Sector.IT),
     SectorHarmonyIndicator(Sector.Industrials)
