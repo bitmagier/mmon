@@ -17,8 +17,15 @@ and the program with:
     sbt "run c"
 This will import the available history of the daily quotes of all S&P500 companies into an influx database and create the custom indicators.  
 
+Applying indicators only (to an already created database), can be done by:
+    
+    sbt "run i" 
+
 Grafana frontend (not yet configured) is available under http://localhost:3000
-Feel free to create a dashboard there using the available data
+Default credentials are "admin/admin"
+Datasource: InfluxDB at http://localhost:8086
+Influx database: mmon 
+Feel free to add the datasource and create a dashboard with panels there using the available data
 
 But: Grafana is not yet configured - this is work in progress - but you can create your own dashboards on the available data
  

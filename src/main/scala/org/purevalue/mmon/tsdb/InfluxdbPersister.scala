@@ -54,12 +54,14 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
         db.exec(s"""DROP CONTINOUS QUERY ${indicator.name} on $dbName"""),
         AsyncTimeout)
       log.info(s"creating influxdb continous query for indicator '${indicator.name}'")
-      Await.ready(
+      val result:QueryResult = Await.result(
         db.exec(
-          s"""CREATE CONTINOUS QUERY ${indicator.name} on $dbName BEGIN
+          s"""CREATE CONTINUOUS QUERY "${indicator.name}" on "$dbName"\n
+           |BEGIN
            | ${indicator.query}
            | END""".stripMargin),
         AsyncTimeout)
+      log.info(result.toString)
     } finally {
       close()
     }

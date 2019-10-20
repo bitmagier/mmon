@@ -12,14 +12,15 @@ case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
 
   override def query: String =
     s"""SELECT STDDEV(diff)
-       | INTO sectorHarmony${sector.name}
+       | INTO "sectorHarmony${sector.name}"
        | FROM (
        |   SELECT DIFFERENCE("${Influx.FieldPrice}") as diff
-       |   FROM ${Influx.Measurement}
+       |   FROM "${Influx.Measurement}"
        |   WHERE ${Influx.TagSector} = '${sector.name}'
        | )
        |""".stripMargin
 }
+// TODO Server answered with error code 400. Message: {"error":"error parsing query: found ), expected GROUP BY time(...) at line 10, char 2"}
 
 
 object Indicators {
