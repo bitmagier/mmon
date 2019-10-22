@@ -12,7 +12,7 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
-// https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
+// see https://docs.influxdata.com/influxdb/v1.7/concepts/key_concepts/
 class InfluxdbPersister(val hostName: String, val dbName: String) {
   private val log = LoggerFactory.getLogger(classOf[InfluxdbPersister])
   private val AsyncTimeout = Duration(Config.influxAsyncWriteTimeout.toMillis, TimeUnit.MILLISECONDS)
@@ -53,14 +53,15 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
       Await.ready(
         db.exec(s"""DROP CONTINOUS QUERY ${indicator.name} on $dbName"""),
         AsyncTimeout)
-      log.info(s"creating influxdb continous query for indicator '${indicator.name}'")
-      val result:QueryResult = Await.result(
-        db.exec(
-          s"""CREATE CONTINUOUS QUERY "${indicator.name}" on "$dbName"\n
+
+      val influxQl =
+        s"""CREATE CONTINUOUS QUERY "${indicator.name}" on "$dbName"
+           |RESAMPLE EVERY 2h
            |BEGIN
-           | ${indicator.query}
-           | END""".stripMargin),
-        AsyncTimeout)
+           |${indicator.query}
+           |END""".stripMargin
+      log.info(s"creating influxdb continous query for indicator '${indicator.name}'\n$influxQl")
+      val result: QueryResult = Await.result(db.exec(influxQl), AsyncTimeout)
       log.info(result.toString)
     } finally {
       close()
