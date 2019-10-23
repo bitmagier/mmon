@@ -11,16 +11,15 @@ case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
   override def name: String = s"sector_harmony_${sector.name}"
 
   override def query: String =
-    s"""SELECT STDDEV(diff) as stddev
+    s"""SELECT STDDEV("rate_of_change") as stddev
        |INTO "sector_harmony_${sector.name}"
        |FROM (
-       |  SELECT DIFFERENCE("${Influx.FieldPrice}") as diff
+       |  SELECT DERIVATIVE("${Influx.FieldPrice}", 1d) as rate_of_change
        |  FROM "${Influx.Measurement}"
-       |  WHERE ${Influx.TagSector} = '${sector.name}'
-       |) group by time(1d)""".stripMargin
+       |  WHERE "${Influx.TagSector}" = '${sector.name}'
+       |  GROUP BY "${Influx.TagSymbol}"
+       |) GROUP BY time(1d)""".stripMargin
 }
-// TODO Server answered with error code 400. Message: {"error":"error parsing query: found ), expected GROUP BY time(...) at line 10, char 2"}
-
 
 object Indicators {
   val all: List[InfluxIndicator] = List(
