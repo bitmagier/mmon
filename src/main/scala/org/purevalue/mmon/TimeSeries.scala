@@ -2,7 +2,7 @@ package org.purevalue.mmon
 
 import java.time.LocalDate
 
-case class DayQuote(time:LocalDate, price:Float, volume:Long)
+case class DayQuote(date:LocalDate, price:Float, volume:Long)
 case class TimeSeriesDaily(symbol:String, timeSeries:List[DayQuote])
 
 case class Company(symbol:String, isin:String, wkn:String, name:String, sector:Sector)

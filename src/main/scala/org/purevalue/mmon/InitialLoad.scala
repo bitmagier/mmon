@@ -2,7 +2,7 @@ package org.purevalue.mmon
 
 import com.paulgoldbaum.influxdbclient.QueryException
 import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
-import org.purevalue.mmon.tsdb.{Indicators, Influx, InfluxdbPersister}
+import org.purevalue.mmon.tsdb.{Influx, InfluxIndicators, InfluxdbPersister}
 import org.slf4j.LoggerFactory
 
 object InitialLoad {
@@ -41,7 +41,7 @@ object InitialLoad {
   }
 
   private def _applyIndicators(): Unit = {
-    Indicators.all.foreach(i =>
+    InfluxIndicators.all.foreach(i =>
       persister.createOrReplace(i))
   }
 }

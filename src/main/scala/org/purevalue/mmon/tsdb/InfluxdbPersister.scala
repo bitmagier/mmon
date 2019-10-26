@@ -69,7 +69,7 @@ class InfluxdbPersister(val hostName: String, val dbName: String) {
   }
 
   private def toMeasurementPoint(c: Company, q: DayQuote): Point = {
-    val timestamp: Long = q.time.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
+    val timestamp: Long = q.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
     Point(
       Influx.Measurement,
       timestamp,

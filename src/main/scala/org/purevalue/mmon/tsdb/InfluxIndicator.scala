@@ -2,12 +2,15 @@ package org.purevalue.mmon.tsdb
 
 import org.purevalue.mmon.Sector
 
+/**
+ * InfluxQL based indicators
+ */
 trait InfluxIndicator {
   def name: String
   def query: String
 }
 
-case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
+private[tsdb] case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
   override def name: String = s"sector_harmony_${sector.name}"
 
   override def query: String =
@@ -21,9 +24,9 @@ case class SectorHarmonyIndicator(sector: Sector) extends InfluxIndicator {
        |) GROUP BY time(1d)""".stripMargin
 }
 
-object Indicators {
+object InfluxIndicators {
   val all: List[InfluxIndicator] = List(
-    SectorHarmonyIndicator(Sector.IT),
-    SectorHarmonyIndicator(Sector.Industrials)
+//    SectorHarmonyIndicator(Sector.IT),
+//    SectorHarmonyIndicator(Sector.Industrials)
   )
 }
