@@ -11,6 +11,8 @@ object Config {
   def alphavantageApiCallDelay: Duration = conf.getDuration("retrieve.alphavantage.api-call-delay")
   def influxdbHostname: String = conf.getString("influxdb.hostname")
   def influxdbDatabase: String = conf.getString("influxdb.database")
-  def influxdbMeasurement: String = conf.getString("influxdb.measurement")
-  def influxAsyncWriteTimeout: Duration = conf.getDuration("influxdb.async-write-timeout")
+  def influxdbMeasurementQuote: String = conf.getString("influxdb.measurement.quote")
+  def influxdbMeasurementIndicator: String = conf.getString("influxdb.measurement.indicator")
+  def influxAsyncReadTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-read")
+  def influxAsyncWriteTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-write")
 }

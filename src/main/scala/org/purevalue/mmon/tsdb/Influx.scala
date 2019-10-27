@@ -6,7 +6,8 @@ object Influx {
   val influxHostName: String = Config.influxdbHostname
   val influxDbName: String = Config.influxdbDatabase
 
-  val Measurement: String = Config.influxdbMeasurement
+  val MeasurementQuote: String = Config.influxdbMeasurementQuote
+  val MeasurementIndicator: String = Config.influxdbMeasurementIndicator
 
   val TagSymbol: String = "symbol"
   val TagName: String = "name"

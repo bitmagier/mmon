@@ -2,12 +2,12 @@ package org.purevalue.mmon
 
 import com.paulgoldbaum.influxdbclient.QueryException
 import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
-import org.purevalue.mmon.tsdb.{Influx, InfluxIndicators, InfluxdbPersister}
+import org.purevalue.mmon.tsdb.{Influx, InfluxIndicators, InfluxDbClient}
 import org.slf4j.LoggerFactory
 
 object InitialLoad {
   private val log = LoggerFactory.getLogger("InitialLoad")
-  private val persister: InfluxdbPersister = new InfluxdbPersister(Influx.influxHostName, Influx.influxDbName)
+  private val persister: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
 
   def initialLoad(preferLocalCachedData: Boolean = false): Unit = {
     try {

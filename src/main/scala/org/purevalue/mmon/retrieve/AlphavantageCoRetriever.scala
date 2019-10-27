@@ -80,7 +80,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
     }
   }
 
-  private def parse(rawData: String): TimeSeriesDaily = {
+  def parse(rawData: String): TimeSeriesDaily = {
     case class ATimeSeries(quotes: List[DayQuote])
     case class AQuote(price: Float, volume: Long)
 
