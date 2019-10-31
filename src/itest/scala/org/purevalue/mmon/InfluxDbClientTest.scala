@@ -21,7 +21,7 @@ class InfluxDbClientTest extends FunSuite {
     db.write(company2, ts2)
 
 
-    val q:List[TimeSeriesDaily]  = db.readQuotes()
+    val q:List[TimeSeriesDaily]  = db.readQuotes().toList
 
     assert(q.groupBy(_.symbol).keySet == Set("AAL", "GOOGL"))
     // TODO
