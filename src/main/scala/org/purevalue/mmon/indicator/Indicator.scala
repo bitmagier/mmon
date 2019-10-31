@@ -1,19 +1,25 @@
 package org.purevalue.mmon.indicator
 
 import java.lang.Math.sqrt
+import java.time.LocalDate
 
-import org.purevalue.mmon.{Company, DayQuote, Sector}
+import org.purevalue.mmon.{Company, Quote, Sector}
 
 
 trait Indicator {
-  type CalcBaseSingleDay = List[DayQuote]
+  type SingleDayCompanyQuotes = Map[String, Quote]
 
-  def companyFilter(company: Company): Boolean
+  def companyIncluded(company: Company): Boolean
 
   def name: String
 
-  def calc(previous: CalcBaseSingleDay, current: CalcBaseSingleDay): Float
+  def calc(previous: SingleDayCompanyQuotes, current: SingleDayCompanyQuotes): Float
 }
+
+
+case class DayValue(date: LocalDate, value: Float)
+
+case class IndicatorValues(indicator: Indicator, v: List[DayValue])
 
 /**
  * Varianz der (täglichen) Steigungsrate der einzelnen Werte
@@ -23,12 +29,13 @@ trait Indicator {
  */
 private[indicator]
 case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicator {
-  override def companyFilter(company: Company): Boolean = (company.sector == this.sector)
+  override def companyIncluded(company: Company): Boolean = (company.sector == this.sector)
 
-  override def calc(previous: CalcBaseSingleDay, current: CalcBaseSingleDay): Float = {
+  override def calc(previous: SingleDayCompanyQuotes, current: SingleDayCompanyQuotes): Float = {
     val changeRate: List[Double] =
-      previous.zip(current)
+      current.map(e => (previous(e._1), e._2))
         .map(x => (x._2.price.toDouble - x._1.price) / x._1.price) // percentual change of the day
+        .toList
     variance(changeRate).toFloat
   }
 

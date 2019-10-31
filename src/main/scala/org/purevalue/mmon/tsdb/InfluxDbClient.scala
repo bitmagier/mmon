@@ -23,28 +23,6 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
 
   val PrecisionOfQuotes: Precision = Precision.SECONDS
 
-
-  //  def createOrReplace(indicator: InfluxIndicator): Unit = {
-  //    try {
-  //      open()
-  //      Await.ready(
-  //        db.exec(s"""DROP CONTINOUS QUERY ${indicator.name} on $dbName"""),
-  //        AsyncTimeout)
-  //
-  //      val influxQl =
-  //        s"""CREATE CONTINUOUS QUERY "${indicator.name}" on "$dbName"
-  //           |RESAMPLE EVERY 2h
-  //           |BEGIN
-  //           |${indicator.query}
-  //           |END""".stripMargin
-  //      log.info(s"creating influxdb continous query for indicator '${indicator.name}'\n$influxQl")
-  //      val result: QueryResult = Await.result(db.exec(influxQl), AsyncTimeout)
-  //      log.info(result.toString)
-  //    } finally {
-  //      close()
-  //    }
-  //  }
-
   private def toPoint(c: Company, q: DayQuote): Point = {
     val time: Long = q.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
     Point(
