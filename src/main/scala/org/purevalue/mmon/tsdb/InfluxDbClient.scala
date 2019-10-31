@@ -73,7 +73,10 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
       throw new IllegalStateException("weired: more than one symbol here")
     }
     val symbol:String = timeSeriesPerSymbol.keys.head
-    val timeSeries: List[DayQuote] = timeSeriesPerSymbol.values.head.map(_._2).sortBy(_.date)
+    val timeSeries: List[DayQuote] = timeSeriesPerSymbol.values.head
+      .map(_._2)
+      .sortWith((a,b) => !b.date.isAfter(a.date))
+
     TimeSeriesDaily(symbol, timeSeries)
   }
 

@@ -21,7 +21,8 @@ trait Indicator {
  * Varianz (Streuungsquadrat) : Maß für die Streuung der Wahrscheinlichkeitsdichte um ihren Schwerpunkt
  *
  */
-private[indicator] abstract case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicator {
+private[indicator]
+case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicator {
   override def companyFilter(company: Company): Boolean = (company.sector == this.sector)
 
   override def calc(previous: CalcBaseSingleDay, current: CalcBaseSingleDay): Float = {
@@ -41,7 +42,7 @@ private[indicator] abstract case class SectorHarmonyIndicator(name: String, sect
 
 
 object Indicators {
-  val all:Seq[Indicator] = List(
+  val all: Seq[Indicator] = List(
     SectorHarmonyIndicator("SectorHarmonyIT", Sector.IT),
     SectorHarmonyIndicator("SectorHarmonyIndustrials", Sector.Industrials)
   )
