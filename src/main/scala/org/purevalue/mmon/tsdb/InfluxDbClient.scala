@@ -63,11 +63,14 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
   private def open(): Unit = {
     influxdb = InfluxDB.connect(hostName, 8086)
     db = influxdb.selectDatabase(dbName)
-    val exists = Await.result(db.exists(), AsyncWriteTimeout)
+    val exists = Await.result(
+      db.exists(),
+      AsyncWriteTimeout)
     if (!exists) {
-      Await.ready(
+      Await.result(
         db.create(),
-        AsyncWriteTimeout)
+        AsyncWriteTimeout
+      )
       log.info(s"Influx database '$dbName' on '$hostName' created")
     }
   }
@@ -128,9 +131,9 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     if (!c.symbol.equals(s.symbol)) {
       throw new IllegalArgumentException(s"SelfCheck: Symbols mismatch! ('${c.symbol}' versus '${s.symbol}')")
     }
-    log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
     try {
       open()
+      log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
       val points = s.timeSeries.map(q => toPoint(c, q))
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
