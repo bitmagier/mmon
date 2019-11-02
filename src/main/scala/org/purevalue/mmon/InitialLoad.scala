@@ -2,7 +2,7 @@ package org.purevalue.mmon
 
 import java.time.LocalDate
 
-import org.purevalue.mmon.indicator.{DayValue, Indicators}
+import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
 import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
 import org.purevalue.mmon.tsdb.{Influx, InfluxDbClient}
 import org.slf4j.LoggerFactory
@@ -34,7 +34,20 @@ object InitialLoad {
 
   /** adds entries for gaps in the data - using the value from the last known day before */
   def fillMissingDays(ts: TimeSeriesDaily): TimeSeriesDaily = {
-    // TODO
+    def genMissingDays(from:LocalDate, to:LocalDate):Seq[DayQuote] = {
+
+    }
+
+    var lastKnownDayValue:Float = null
+    var lastKnownDay:LocalDate = null
+    val result = ListBuffer[DayQuote]()
+    for (ts <- ts.timeSeries.sorted) {
+      if (lastKnownDay != null) {
+        if (lastKnownDay.plusDays(1).isBefore(ts.date)) {
+          result ++= genMissingDays(lastKnownDay.plusDays(1), ts.date.minusDays(1), lastKnownDayValue)
+        }
+      }
+    }
   }
 
   private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
@@ -50,45 +63,49 @@ object InitialLoad {
 
   }
 
+  private def calcIndicatorValues(i: Indicator, quotesPerCompany: Map[String, List[DayQuote]]): List[DayValue] = {
+    log.info(s"Calculating indicator '${i.name}'")
+    val iSymbols: Set[String] = Masterdata.companies
+      .filter(c => i.companyIncluded(c))
+      .map(_.symbol)
+      .toSet
+    val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
+    var iValues = ListBuffer[DayValue]()
+
+    val lastDay = iQuotesPerCompany.values.map(_.map(_.date).max).max
+    var day = iQuotesPerCompany.values.map(_.map(_.date).min).min
+    do {
+      val prevDayData: Map[String, Quote] = iQuotesPerCompany
+        .flatMap(x =>
+          x._2.find(_.date == day.minusDays(1))
+            .map(q => x._1 -> q.quote)
+        )
+      val currentDayData: Map[String, Quote] = iQuotesPerCompany
+        .flatMap(x =>
+          x._2.find(_.date == day)
+            .map(q => x._1 -> q.quote)
+        )
+
+      iValues += DayValue(day, i.calc(prevDayData, currentDayData))
+
+      day = day.plusDays(1)
+    } while (!day.isAfter(lastDay))
+  }
+
   private def _applyIndicators(): Unit = {
-    val companiesBySymbol: Map[String, Company] = Masterdata.companies.map(c => c.symbol -> c).toMap
-    val sortedQuotesByCompany: Map[String, List[DayQuote]] =
+    val quotesPerCompany: Map[String, List[DayQuote]] =
       db.readQuotes()
         .groupBy(_.symbol)
         .mapValues(v =>
           v.flatMap(_.timeSeries)
             .toList
-            .sorted
         )
 
     Indicators.all.foreach(i => {
-      log.info(s"Calculating indicator '${i.name}'")
-      val symbols: Set[String] = Masterdata.companies
-        .filter(c => i.companyIncluded(c))
-        .map(_.symbol)
-        .toSet
-
-      var indicatorValues = ListBuffer[DayValue]()
-      val days:List[LocalDate] = // TODO
-
-      for (day <- days) {
-        val prevDayData:Map[String,Quote] = sortedQuotesByCompany
-          .filterKeys(x => symbols.contains(x))
-          .flatMap(x =>
-            x._2.find(_.date == day.minusDays(1))
-              .map(q => x._1 -> q.quote)
-          )
-        val currentDayData:Map[String,Quote] = sortedQuotesByCompany
-          .filterKeys(x => symbols.contains(x))
-          .flatMap(x =>
-            x._2.find(_.date == day)
-            .map(q => x._1 -> q.quote)
-          )
-
-        indicatorValues += DayValue (day, i.calc(prevDayData, currentDayData))
-      }
-
-      db.writeIndicator(i, indicatorValues.toList)
+      val iValues: List[DayValue] = calcIndicator(i, quotesPerCompany)
+      db.writeIndicator(i, iValues)
     })
   }
+
+
 }
