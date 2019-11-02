@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 import com.paulgoldbaum.influxdbclient.Parameter.Precision.Precision
 import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
+import org.purevalue.mmon.indicator.{DayValue, Indicator}
 import org.purevalue.mmon.{Company, Config, DayQuote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
@@ -23,7 +24,7 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
 
   val PrecisionOfQuotes: Precision = Precision.SECONDS
 
-  private def toPoint(c: Company, q: DayQuote): Point = {
+  private def toQuotePoint(c: Company, q: DayQuote): Point = {
     val time: Long = q.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
     Point(
       Influx.MeasurementQuote,
@@ -33,9 +34,24 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
         Tag(Influx.TagName, c.name),
         Tag(Influx.TagSector, c.sector.name)),
       List(
-        DoubleField(Influx.FieldPrice, q.price),
-        DoubleField(Influx.FieldVolume, q.volume)
+        DoubleField(Influx.FieldPrice, q.quote.price),
+        DoubleField(Influx.FieldVolume, q.quote.volume)
       ))
+  }
+
+
+  private def toIndicatorPoint(i:Indicator, v:DayValue):Point = {
+    val time: Long = v.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
+    Point(
+      Influx.MeasurementIndicator,
+      time,
+      List(
+        Tag(Influx.TagIndicatorName, i.name)
+      ),
+      List(
+        DoubleField(Influx.FieldIndicatorValue, v.value)
+      )
+    )
   }
 
   private def open(): Unit = {
@@ -72,6 +88,18 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
   }
 
+  def dropDatabase(): Unit = {
+    try {
+      open()
+      Await.result(
+        db.drop(),
+        AsyncWriteTimeout)
+      log.info(s"Influx database '$dbName' on '$hostName' dropped")
+    } finally {
+      close()
+    }
+  }
+
   private def fromQuoteSeries(s: Series): Iterable[TimeSeriesDaily] = {
     val timeSeriesPerSymbol: Map[String, List[(String, DayQuote)]] =
       s.records.map(r => {
@@ -105,33 +133,38 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
   }
 
-  def write(c: Company, s: TimeSeriesDaily): Unit = {
+  def writeQuotes(c: Company, s: TimeSeriesDaily): Unit = {
     if (!c.symbol.equals(s.symbol)) {
       throw new IllegalArgumentException(s"SelfCheck: Symbols mismatch! ('${c.symbol}' versus '${s.symbol}')")
     }
     try {
       open()
       log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
-      val points = s.timeSeries.map(q => toPoint(c, q))
+      val points = s.timeSeries.map(q => toQuotePoint(c, q))
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
         AsyncWriteTimeout)) {
         log.debug(s"Quotes for symbol '${s.symbol}' successfully persisted")
       } else {
-        log.warn(s"Could not persist quotes for symbol '${s.symbol}'. Could implement a retry for that ;-)")
+        log.warn(s"Could not write quotes for symbol '${s.symbol}'. Could implement a retry for that ;-)")
       }
     } finally {
       close()
     }
   }
 
-  def dropDatabase(): Unit = {
+  def writeIndicator(i:Indicator, v:List[DayValue]): Unit = {
     try {
       open()
-      Await.result(
-        db.drop(),
-        AsyncWriteTimeout)
-      log.info(s"Influx database '$dbName' on '$hostName' dropped")
+      log.info(s"Storing indicator '${i.name}' into influxdb")
+      val points = v.map(v => toIndicatorPoint(i, v))
+      if (Await.result(
+        db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
+        AsyncWriteTimeout)) {
+        log.debug(s"Indicator '${i.name}' written")
+      } else {
+        log.warn(s"Could not write indicator")
+      }
     } finally {
       close()
     }

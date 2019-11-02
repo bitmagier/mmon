@@ -13,6 +13,11 @@ object Influx {
   val TagName: String = "name"
   val TagSector: String = "sector"
 
+  val TagIndicatorName: String = "indicator"
+
+
   val FieldPrice: String = "price"
   val FieldVolume: String = "volume"
+
+  val FieldIndicatorValue: String = "value"
 }

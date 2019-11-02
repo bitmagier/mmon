@@ -7,13 +7,9 @@ import org.purevalue.mmon.{Company, Quote, Sector}
 
 
 trait Indicator {
-  type SingleDayCompanyQuotes = Map[String, Quote]
-
   def companyIncluded(company: Company): Boolean
-
   def name: String
-
-  def calc(previous: SingleDayCompanyQuotes, current: SingleDayCompanyQuotes): Float
+  def calc(previous: Map[String, Quote], current: Map[String, Quote]): Float
 }
 
 
@@ -31,11 +27,12 @@ private[indicator]
 case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicator {
   override def companyIncluded(company: Company): Boolean = (company.sector == this.sector)
 
-  override def calc(previous: SingleDayCompanyQuotes, current: SingleDayCompanyQuotes): Float = {
-    val changeRate: List[Double] =
-      current.map(e => (previous(e._1), e._2))
-        .map(x => (x._2.price.toDouble - x._1.price) / x._1.price) // percentual change of the day
-        .toList
+  override def calc(previous: Map[String, Quote], current: Map[String, Quote]): Float = {
+    val changeRate: List[Double] = current
+      .filter(e => previous.get(e._1).isDefined)
+      .map(e => (previous(e._1), e._2))
+      .map(tuple => (tuple._2.price.toDouble - tuple._1.price) / tuple._1.price) // percentual change of the day
+      .toList
     variance(changeRate).toFloat
   }
 

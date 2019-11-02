@@ -22,12 +22,12 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
     val company1 = BootstrapData.sp500Companies.find(c => c.symbol == "AAL").get
     val ts1 = new AlphavantageCoRetriever().parse(
       Source.fromResource("mmon-cache/AAL-2019-10-20.rawdata").mkString)
-    db.write(company1, ts1)
+    db.writeQuotes(company1, ts1)
 
     val company2 = BootstrapData.sp500Companies.find(c => c.symbol == "GOOGL").get
     val ts2 = new AlphavantageCoRetriever().parse(
       Source.fromResource("mmon-cache/GOOGL-2019-10-20.rawdata").mkString)
-    db.write(company2, ts2)
+    db.writeQuotes(company2, ts2)
 
 
     val q: List[TimeSeriesDaily] = db.readQuotes().toList
