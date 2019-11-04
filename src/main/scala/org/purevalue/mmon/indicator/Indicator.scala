@@ -1,6 +1,5 @@
 package org.purevalue.mmon.indicator
 
-import java.lang.Math.sqrt
 import java.time.LocalDate
 
 import org.purevalue.mmon.{Company, Quote, Sector}
@@ -39,7 +38,7 @@ case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicato
   private def variance(values: List[Double]): Double = {
     val arithmeticMiddle = values.sum / values.length
     values
-      .map(r => sqrt(arithmeticMiddle - r))
+      .map(r => Math.pow(arithmeticMiddle - r, 2.0))
       .sum / values.length
   }
 }
