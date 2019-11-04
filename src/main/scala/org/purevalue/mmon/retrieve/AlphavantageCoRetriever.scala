@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
-import org.purevalue.mmon.{Config, DayQuote, TimeSeriesDaily}
+import org.purevalue.mmon.{Config, DayQuote, Quote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
@@ -101,8 +101,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
         timeSeries.map(x =>
           DayQuote(
             LocalDate.parse(x._1, ISO_LOCAL_DATE),
-            x._2.price,
-            x._2.volume
+            Quote(x._2.price, x._2.volume)
           )).toList
       )
     } catch {

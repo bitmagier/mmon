@@ -1,6 +1,7 @@
 package org.purevalue.mmon
 
 import java.time.LocalDate
+import java.util.Comparator
 
 import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
 import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
@@ -33,21 +34,30 @@ object InitialLoad {
   }
 
   /** adds entries for gaps in the data - using the value from the last known day before */
-  def fillMissingDays(ts: TimeSeriesDaily): TimeSeriesDaily = {
-    def genMissingDays(from:LocalDate, to:LocalDate):Seq[DayQuote] = {
-
+  def addMissingDays(ts: TimeSeriesDaily): TimeSeriesDaily = {
+    def generateDates(from: LocalDate, toInclusive: LocalDate): List[LocalDate] = {
+      var result = List[LocalDate]()
+      var decr: Int = 0
+      while (!toInclusive.minusDays(decr).isBefore(from)) {
+        result = toInclusive.minusDays(decr) :: result
+        decr = decr + 1
+      }
+      result
     }
 
-    var lastKnownDayValue:Float = null
-    var lastKnownDay:LocalDate = null
-    val result = ListBuffer[DayQuote]()
+    var lastKnown: DayQuote = null
+    val addedDays = ListBuffer[DayQuote]()
+
     for (ts <- ts.timeSeries.sorted) {
-      if (lastKnownDay != null) {
-        if (lastKnownDay.plusDays(1).isBefore(ts.date)) {
-          result ++= genMissingDays(lastKnownDay.plusDays(1), ts.date.minusDays(1), lastKnownDayValue)
-        }
+      if (lastKnown != null && lastKnown.date.plusDays(1).isBefore(ts.date)) {
+        addedDays ++=
+          generateDates(lastKnown.date.plusDays(1), ts.date.minusDays(1))
+            .map(d => DayQuote(d, Quote(lastKnown.quote.price, 0L)))
+      } else {
+        lastKnown = ts
       }
     }
+    TimeSeriesDaily(ts.symbol, ts.timeSeries ::: addedDays.toList)
   }
 
   private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
@@ -57,7 +67,7 @@ object InitialLoad {
       .filter(c => c.sector == Sector.IT || c.sector == Sector.Industrials) // import is limited to these, because we have a limit of 500 API calls to alphavantage.co per day only
       .foreach { c =>
         val ts = retriever.receiveFull(c.symbol)
-        val continousTs = fillMissingDays(ts)
+        val continousTs = addMissingDays(ts)
         db.writeQuotes(c, continousTs)
       }
 
@@ -72,6 +82,7 @@ object InitialLoad {
     val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
     var iValues = ListBuffer[DayValue]()
 
+    implicit val localDateOrdering: Ordering[LocalDate] = Ordering.by(_.toEpochDay)
     val lastDay = iQuotesPerCompany.values.map(_.map(_.date).max).max
     var day = iQuotesPerCompany.values.map(_.map(_.date).min).min
     do {
@@ -85,11 +96,12 @@ object InitialLoad {
           x._2.find(_.date == day)
             .map(q => x._1 -> q.quote)
         )
-
       iValues += DayValue(day, i.calc(prevDayData, currentDayData))
 
       day = day.plusDays(1)
     } while (!day.isAfter(lastDay))
+
+    iValues.toList
   }
 
   private def _applyIndicators(): Unit = {
@@ -102,10 +114,7 @@ object InitialLoad {
         )
 
     Indicators.all.foreach(i => {
-      val iValues: List[DayValue] = calcIndicator(i, quotesPerCompany)
-      db.writeIndicator(i, iValues)
+      db.writeIndicator(i, calcIndicatorValues(i, quotesPerCompany))
     })
   }
-
-
 }

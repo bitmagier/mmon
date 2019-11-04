@@ -7,7 +7,7 @@ import com.paulgoldbaum.influxdbclient.Parameter.Precision.Precision
 import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
 import org.purevalue.mmon.indicator.{DayValue, Indicator}
-import org.purevalue.mmon.{Company, Config, DayQuote, TimeSeriesDaily}
+import org.purevalue.mmon.{Company, Config, DayQuote, Quote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
@@ -115,7 +115,7 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
         val volume = r(s"${Influx.FieldVolume}") match {
           case v: BigDecimal => v.toLongExact
         }
-        (symbol, DayQuote(date, price, volume))
+        (symbol, DayQuote(date, Quote(price, volume)))
       }).groupBy(_._1)
     timeSeriesPerSymbol.map(x => TimeSeriesDaily(x._1, x._2.map(_._2)))
   }

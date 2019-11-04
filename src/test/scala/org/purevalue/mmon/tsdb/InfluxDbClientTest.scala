@@ -1,9 +1,9 @@
-package org.purevalue.mmon
+package org.purevalue.mmon.tsdb
 
 import java.time.LocalDate
 
 import org.purevalue.mmon.retrieve.AlphavantageCoRetriever
-import org.purevalue.mmon.tsdb.InfluxDbClient
+import org.purevalue.mmon.{BootstrapData, Config, DayQuote, Quote, TimeSeriesDaily}
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 import scala.io.Source
@@ -60,7 +60,7 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
     assert(
       q.filter(_.symbol == "GOOGL")
         .flatMap(_.timeSeries)
-        .contains(DayQuote(LocalDate.of(2006, 1, 27), 433.49f, 16887400L))
+        .contains(DayQuote(LocalDate.of(2006, 1, 27), Quote(433.49f, 16887400L)))
 //          x.date == LocalDate.of(2006, 1, 27)
 //            && x.price == 433.49f
 //            && x.volume == 16887400L)
