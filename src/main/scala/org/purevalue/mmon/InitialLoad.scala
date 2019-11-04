@@ -47,15 +47,13 @@ object InitialLoad {
 
     var lastKnown: DayQuote = null
     val addedDays = ListBuffer[DayQuote]()
-
     for (ts <- ts.timeSeries.sorted) {
       if (lastKnown != null && lastKnown.date.plusDays(1).isBefore(ts.date)) {
         addedDays ++=
           generateDates(lastKnown.date.plusDays(1), ts.date.minusDays(1))
             .map(d => DayQuote(d, Quote(lastKnown.quote.price, 0L)))
-      } else {
-        lastKnown = ts
       }
+      lastKnown = ts
     }
     TimeSeriesDaily(ts.symbol, ts.timeSeries ::: addedDays.toList)
   }
