@@ -3,11 +3,12 @@ package org.purevalue.mmon.tsdb
 import java.time.LocalDate
 
 import org.purevalue.mmon.retrieve.AlphavantageCoRetriever
-import org.purevalue.mmon.{BootstrapData, Config, DayQuote, Quote, TimeSeriesDaily}
+import org.purevalue.mmon._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 import scala.io.Source
 
+/** This test requires a running influxdb  - {@see infrastructure/dev/run-docker-based-dev-infrastructure.sh} */
 class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
   var db:InfluxDbClient = _
 
@@ -18,7 +19,7 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
     db.dropDatabase()
   }
 
-  test("we can read what we have written") {
+  test("we can read the quotes, what we have written") {
     val company1 = BootstrapData.sp500Companies.find(c => c.symbol == "AAL").get
     val ts1 = new AlphavantageCoRetriever().parse(
       Source.fromResource("mmon-cache/AAL-2019-10-20.rawdata").mkString)
@@ -61,9 +62,6 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
       q.filter(_.symbol == "GOOGL")
         .flatMap(_.timeSeries)
         .contains(DayQuote(LocalDate.of(2006, 1, 27), Quote(433.49f, 16887400L)))
-//          x.date == LocalDate.of(2006, 1, 27)
-//            && x.price == 433.49f
-//            && x.volume == 16887400L)
     )
   }
 }
