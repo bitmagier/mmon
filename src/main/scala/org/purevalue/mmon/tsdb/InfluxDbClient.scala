@@ -120,6 +120,7 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     timeSeriesPerSymbol.map(x => TimeSeriesDaily(x._1, x._2.map(_._2)))
   }
 
+  // TODO chunk it!
   def readQuotes(): Iterable[TimeSeriesDaily] = {
     try {
       open()
