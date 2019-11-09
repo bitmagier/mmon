@@ -12,7 +12,6 @@ import scala.collection.mutable.ListBuffer
 object InitialLoad {
   private val log = LoggerFactory.getLogger("InitialLoad")
   private val db: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
-  private var dataRangeFrom, dataRangeTo:LocalDate = _
 
   def initialLoad(preferLocalCachedData: Boolean = false): Unit = {
     try {
@@ -59,15 +58,6 @@ object InitialLoad {
   }
 
   private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
-    def updateLoadedDataRange(ts: TimeSeriesDaily): Unit = {
-
-      implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
-      val min = ts.timeSeries.map(_.date).min
-      val max = ts.timeSeries.map(_.date).max
-      if (dataRangeFrom == null || min.isBefore(dataRangeFrom)) dataRangeFrom = min
-      if (dataRangeTo == null || max.isAfter(dataRangeTo)) dataRangeTo = max
-    }
-
     val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
     db.dropDatabase()
     Masterdata.companies
@@ -76,7 +66,6 @@ object InitialLoad {
         val ts = retriever.receiveFull(c.symbol)
         val continousTs = addMissingDays(ts)
         db.writeQuotes(c, continousTs)
-        updateLoadedDataRange(continousTs)
       }
   }
 
@@ -113,6 +102,8 @@ object InitialLoad {
 
   private def _applyIndicators(): Unit = {
     // load in chunks of 1 year
+    val dataRangeFrom = db.queryQuotesMinDate()
+    val dataRangeTo = db.queryQuotesMaxDate()
     for (year <- dataRangeFrom.getYear to dataRangeTo.getYear) {
       _applyIndicators(
         LocalDate.ofYearDay(year, 1),
@@ -127,7 +118,7 @@ object InitialLoad {
         .groupBy(_.symbol)
         .mapValues(v =>
           v.flatMap(_.timeSeries)
-            .toList
+          .toList
         )
 
     Indicators.all.foreach(i => {
