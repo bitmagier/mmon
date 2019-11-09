@@ -7,7 +7,7 @@ import com.paulgoldbaum.influxdbclient.Parameter.Precision.Precision
 import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
 import org.purevalue.mmon.indicator.{DayValue, Indicator}
-import org.purevalue.mmon.{Company, Config, DayQuote, Quote, TimeSeriesDaily}
+import org.purevalue.mmon._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await
@@ -40,8 +40,11 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
   }
 
 
+  private def toEpochSecond(date:LocalDate):Long = date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
+  private def toQueryString(date:LocalDate) = s"${date.atStartOfDay(ZoneOffset.UTC).toInstant.toString}"
+
   private def toIndicatorPoint(i:Indicator, v:DayValue):Point = {
-    val time: Long = v.date.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
+    val time: Long = toEpochSecond(v.date)
     Point(
       Influx.MeasurementIndicator,
       time,
@@ -120,12 +123,13 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     timeSeriesPerSymbol.map(x => TimeSeriesDaily(x._1, x._2.map(_._2)))
   }
 
-  // TODO chunk it!
-  def readQuotes(): Iterable[TimeSeriesDaily] = {
+  def readQuotes(from:LocalDate, to:LocalDate): Iterable[TimeSeriesDaily] = {
     try {
       open()
+      val query = s"select * from ${Influx.MeasurementQuote} where time >= '${toQueryString(from)}' and time <= '${toQueryString(to)}'"
+      if (log.isDebugEnabled()) {log.debug(query)}
       val queryResult: QueryResult = Await.result(
-        db.query(s"select * from ${Influx.MeasurementQuote}", PrecisionOfQuotes),
+        db.query(query, PrecisionOfQuotes),
         AsyncReadTimeout)
       assert(queryResult.series.size == 1)
       queryResult.series.flatMap(fromQuoteSeries)
@@ -145,7 +149,7 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
         AsyncWriteTimeout)) {
-        log.debug(s"Quotes for symbol '${s.symbol}' successfully persisted")
+        log.debug(s"Quotes for symbol '${s.symbol}' successfully stored")
       } else {
         log.warn(s"Could not write quotes for symbol '${s.symbol}'. Could implement a retry for that ;-)")
       }

@@ -31,7 +31,7 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
     db.writeQuotes(company2, ts2)
 
 
-    val q: List[TimeSeriesDaily] = db.readQuotes().toList
+    val q: List[TimeSeriesDaily] = db.readQuotes(LocalDate.ofYearDay(2000, 1), LocalDate.ofYearDay(2020,1)).toList
 
     assert(q.groupBy(_.symbol).keySet == Set("AAL", "GOOGL"))
 

@@ -1,6 +1,6 @@
 name := "mmon"
 
-version := "0.1.0"
+version := "0.2.0"
 
 scalaVersion := "2.12.10"
 
@@ -8,15 +8,16 @@ scalaVersion := "2.12.10"
 // resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/"
 
 val circeVersion = "0.12.+"
-libraryDependencies ++= Seq(
-  "io.circe"  %% "circe-core"     % circeVersion,
-  "io.circe"  %% "circe-generic"  % circeVersion,
-  "io.circe"  %% "circe-parser"   % circeVersion
-)
+libraryDependencies += "io.circe" %% "circe-core" % circeVersion
+libraryDependencies += "io.circe" %% "circe-generic" % circeVersion
+libraryDependencies += "io.circe" %% "circe-parser" % circeVersion
+
+libraryDependencies += "com.typesafe" % "config" % "1.4.+"
+libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.+"
+
+val log4jVersion = "2.12.1"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % log4jVersion
+libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % log4jVersion
+libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.+" % "test"
-libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.+"
-libraryDependencies += "com.typesafe" % "config" % "1.4.+"
-libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.+"
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.+"
-

@@ -1,7 +1,6 @@
 package org.purevalue.mmon
 
 import java.time.LocalDate
-import java.util.Comparator
 
 import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
 import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
@@ -13,6 +12,7 @@ import scala.collection.mutable.ListBuffer
 object InitialLoad {
   private val log = LoggerFactory.getLogger("InitialLoad")
   private val db: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
+  private var dataRangeFrom, dataRangeTo:LocalDate = _
 
   def initialLoad(preferLocalCachedData: Boolean = false): Unit = {
     try {
@@ -59,6 +59,15 @@ object InitialLoad {
   }
 
   private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
+    def updateLoadedDataRange(ts: TimeSeriesDaily): Unit = {
+
+      implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
+      val min = ts.timeSeries.map(_.date).min
+      val max = ts.timeSeries.map(_.date).max
+      if (dataRangeFrom == null || min.isBefore(dataRangeFrom)) dataRangeFrom = min
+      if (dataRangeTo == null || max.isAfter(dataRangeTo)) dataRangeTo = max
+    }
+
     val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
     db.dropDatabase()
     Masterdata.companies
@@ -67,8 +76,8 @@ object InitialLoad {
         val ts = retriever.receiveFull(c.symbol)
         val continousTs = addMissingDays(ts)
         db.writeQuotes(c, continousTs)
+        updateLoadedDataRange(continousTs)
       }
-
   }
 
   private def calcIndicatorValues(i: Indicator, quotesPerCompany: Map[String, List[DayQuote]]): List[DayValue] = {
@@ -80,7 +89,7 @@ object InitialLoad {
     val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
     var iValues = ListBuffer[DayValue]()
 
-    implicit val localDateOrdering: Ordering[LocalDate] = Ordering.by(_.toEpochDay)
+    implicit val ordering:Ordering[LocalDate] = Util.localDateOrdering
     val lastDay = iQuotesPerCompany.values.map(_.map(_.date).max).max
     var day = iQuotesPerCompany.values.map(_.map(_.date).min).min
     do {
@@ -103,8 +112,18 @@ object InitialLoad {
   }
 
   private def _applyIndicators(): Unit = {
+    // load in chunks of 1 year
+    for (year <- dataRangeFrom.getYear to dataRangeTo.getYear) {
+      _applyIndicators(
+        LocalDate.ofYearDay(year, 1),
+        LocalDate.ofYearDay(year+1, 1)
+      )
+    }
+  }
+
+  private def _applyIndicators(from:LocalDate, to:LocalDate): Unit = {
     val quotesPerCompany: Map[String, List[DayQuote]] =
-      db.readQuotes()
+      db.readQuotes(from, to)
         .groupBy(_.symbol)
         .mapValues(v =>
           v.flatMap(_.timeSeries)
