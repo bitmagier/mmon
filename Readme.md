@@ -21,13 +21,19 @@ Applying indicators only (to an already created database), can be done by:
     
     sbt "run i" 
 
-Grafana frontend (not yet configured) is available under http://localhost:3000
+Grafana
+---
+When using the docker based development environment, 
+the Grafana frontend (not yet configured) is available under http://localhost:3000
 Default credentials are "admin/admin"
-Datasource: InfluxDB at http://localhost:8086
-Influx database: mmon 
-Feel free to add the datasource and create a dashboard with panels there using the available data
 
-But: Grafana is not yet configured - this is work in progress - but you can create your own dashboards on the available data
+As a datasource please use: InfluxDB at http://influxdb:8086 with database "mmon". 
+
+Then create a dashboard with panels there using the available data
+
+Already working dashboards can be found under __src/main/grafana__
+Please note: Grafana frontend is still work in progress - but you can create your own dashboards on the available data.
+ 
  
 Requirements
 ------------
