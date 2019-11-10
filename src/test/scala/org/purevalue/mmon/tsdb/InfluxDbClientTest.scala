@@ -35,7 +35,7 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
 
     assert(q.groupBy(_.symbol).keySet == Set("AAL", "GOOGL"))
 
-    // check if we have same dates as we stored
+    // check if we have same dates as we have written
     assert(
       q.filter(_.symbol == "AAL")
         .flatMap(_.timeSeries.map(_.date))

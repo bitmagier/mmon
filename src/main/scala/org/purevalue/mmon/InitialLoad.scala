@@ -70,7 +70,6 @@ object InitialLoad {
   }
 
   private def calcIndicatorValues(i: Indicator, quotesPerCompany: Map[String, List[DayQuote]]): List[DayValue] = {
-    log.info(s"Calculating indicator '${i.name}'")
     val iSymbols: Set[String] = Masterdata.companies
       .filter(c => i.companyIncluded(c))
       .map(_.symbol)
@@ -79,8 +78,9 @@ object InitialLoad {
     var iValues = ListBuffer[DayValue]()
 
     implicit val ordering:Ordering[LocalDate] = Util.localDateOrdering
-    val lastDay = iQuotesPerCompany.values.map(_.map(_.date).max).max
-    var day = iQuotesPerCompany.values.map(_.map(_.date).min).min
+    val lastDayOfData = iQuotesPerCompany.values.map(_.map(_.date).max).max
+    var day = iQuotesPerCompany.values.map(_.map(_.date).min).min.plusDays(1)
+    log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
     do {
       val prevDayData: Map[String, Quote] = iQuotesPerCompany
         .flatMap(x =>
@@ -92,16 +92,20 @@ object InitialLoad {
           x._2.find(_.date == day)
             .map(q => x._1 -> q.quote)
         )
-      iValues += DayValue(day, i.calc(prevDayData, currentDayData))
+      val idx = i.calc(prevDayData, currentDayData)
+      if (idx.isInfinite || idx.isNaN) {
+        throw new Exception(s"Indicator ${i.name}: invalid value '${idx}' calculated for day ${day}")
+      }
+      iValues += DayValue(day, idx)
 
       day = day.plusDays(1)
-    } while (!day.isAfter(lastDay))
+    } while (!day.isAfter(lastDayOfData))
 
     iValues.toList
   }
 
   private def _applyIndicators(): Unit = {
-    // load in chunks of 1 year
+    // load in chunks of 1 year, to prevent OutOfMemory/Timeout
     val dataRangeFrom = db.queryQuotesMinDate()
     val dataRangeTo = db.queryQuotesMaxDate()
     for (year <- dataRangeFrom.getYear to dataRangeTo.getYear) {

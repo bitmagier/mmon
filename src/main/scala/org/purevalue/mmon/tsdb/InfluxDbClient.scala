@@ -105,16 +105,28 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
   }
 
+  def toString(queryResult: QueryResult): String = {
+    val sb = StringBuilder.newBuilder
+    sb.append("query result:\n")
+    queryResult.series.foreach(s => {
+      sb.append(s.columns.mkString(" | ")).append("\n")
+      s.records.foreach(r => {
+        sb.append(r.allValues.mkString(", "))
+        sb.append("\n")
+      })
+      sb.append("---------------\n")
+    })
+    sb.mkString
+  }
 
-
-  private def singleDateQuery(query:String): LocalDate = {
+  private def singleRowTimeQuery(query: String): LocalDate = {
     try {
       open()
       log.debug(query)
       val queryResult: QueryResult = Await.result(
         db.query(query, PrecisionOfQuotes),
         AsyncReadTimeout)
-
+      log.debug(toString(queryResult))
       queryResult.series.head.records.head("time") match {
         case t: BigDecimal => LocalDateTime.ofEpochSecond(t.toLongExact, 0, ZoneOffset.UTC).toLocalDate
       }
@@ -123,8 +135,9 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
   }
 
-  def queryQuotesMinDate(): LocalDate = singleDateQuery(s"select min(time) from ${Influx.MeasurementQuote}")
-  def queryQuotesMaxDate(): LocalDate = singleDateQuery(s"select max(time) from ${Influx.MeasurementQuote}")
+  def queryQuotesMinDate(): LocalDate = singleRowTimeQuery(s"select first(${Influx.FieldPrice}), time from ${Influx.MeasurementQuote}")
+
+  def queryQuotesMaxDate(): LocalDate = singleRowTimeQuery(s"select last(${Influx.FieldPrice}), time from ${Influx.MeasurementQuote}")
 
 
   private def fromQuoteSeries(s: Series): Iterable[TimeSeriesDaily] = {
@@ -168,12 +181,12 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
     try {
       open()
-      log.info(s"Storing quotes for symbol '${s.symbol}' into influxdb")
+      log.info(s"Writing quotes for symbol '${s.symbol}' into influxdb")
       val points = s.timeSeries.map(q => toQuotePoint(c, q))
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
         AsyncWriteTimeout)) {
-        log.debug(s"Quotes for symbol '${s.symbol}' successfully stored")
+        log.debug(s"Quotes for symbol '${s.symbol}' successfully written")
       } else {
         log.warn(s"Could not write quotes for symbol '${s.symbol}'. Could implement a retry for that ;-)")
       }
@@ -185,7 +198,7 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
   def writeIndicator(i: Indicator, v: List[DayValue]): Unit = {
     try {
       open()
-      log.info(s"Storing indicator '${i.name}' into influxdb")
+      log.info(s"Writing indicator '${i.name}' into influxdb")
       val points = v.map(v => toIndicatorPoint(i, v))
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),

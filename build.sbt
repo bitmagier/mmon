@@ -13,7 +13,7 @@ libraryDependencies += "io.circe" %% "circe-generic" % circeVersion
 libraryDependencies += "io.circe" %% "circe-parser" % circeVersion
 
 libraryDependencies += "com.typesafe" % "config" % "1.4.+"
-libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "0.6.+"
+libraryDependencies += "com.paulgoldbaum" %% "scala-influxdb-client" % "[0.6,)"
 
 val log4jVersion = "2.12.1"
 libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % log4jVersion
