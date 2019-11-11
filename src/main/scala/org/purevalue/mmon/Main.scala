@@ -23,6 +23,3 @@ object Main {
   }
 }
 
-
-// TODO make importCompanyQuotes (especially InfluxDb.write) async
-// TODO (for production) enable HTTPS with InfluxDB: https://docs.influxdata.com/influxdb/v1.7/administration/https_setup/
