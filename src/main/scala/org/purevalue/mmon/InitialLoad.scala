@@ -61,7 +61,7 @@ object InitialLoad {
     val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
     db.dropDatabase()
     Masterdata.companies
-      .filter(c => Config.dataBusinessSectorFilter.contains(c.name.toLowerCase))
+      .filter(c => Config.dataBusinessSectorFilter.contains(c.sector.name))
       .foreach { c =>
         val ts = retriever.receiveFull(c.symbol)
         val continousTs = addMissingDays(ts)
