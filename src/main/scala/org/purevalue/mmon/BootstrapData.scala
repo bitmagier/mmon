@@ -17,6 +17,7 @@ object Sector {
 import Sector._
 
 object BootstrapData {
+  val sectors: Set[Sector] = Set(Industrials, Healthcare, IT, ConsumerDiscretionary, Financials, Materials, RealEstate, ConsumerStaples, Utilities, Energy, TelecommunicationServices)
   val sp500Companies: List[Company] = List(
     Company("MMM", "3M Company", Industrials),
     Company("AOS", "A.O. Smith Corp", Industrials),

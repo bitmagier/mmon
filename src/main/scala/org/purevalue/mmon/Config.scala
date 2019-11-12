@@ -2,9 +2,20 @@ package org.purevalue.mmon
 
 import java.time.Duration
 
+import scala.collection.JavaConverters._
 import com.typesafe.config.ConfigFactory
+import org.slf4j.LoggerFactory
 
 object Config {
+  private val log = LoggerFactory.getLogger("Config")
+  def validate(): Unit = {
+    for (f <- dataBusinessSectorFilter) {
+      if (!Masterdata.sectors.map(_.name).contains(f)) {
+        log.warn(s"Config contains invalid value '$f' under 'data.business-sector-filter'")
+      }
+    }
+  }
+
   private val conf = ConfigFactory.load()
 
   def alphavantageApiKey: String = conf.getString("retrieve.alphavantage.api-key")
@@ -15,4 +26,6 @@ object Config {
   def influxdbMeasurementIndicator: String = conf.getString("influxdb.measurement.indicator")
   def influxAsyncReadTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-read")
   def influxAsyncWriteTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-write")
+
+  def dataBusinessSectorFilter:Set[String] = conf.getStringList("data.business-sector-filter").asScala.toSet
 }

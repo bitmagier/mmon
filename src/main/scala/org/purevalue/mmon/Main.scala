@@ -6,6 +6,9 @@ object Main {
   private val log = LoggerFactory.getLogger("main")
 
   def main(args: Array[String]): Unit = {
+
+    Config.validate()
+
     if (args.isEmpty)
       log.warn("Please provide action via commandline parameter.\n"
         + "l = InitialLoad (pure)\n"

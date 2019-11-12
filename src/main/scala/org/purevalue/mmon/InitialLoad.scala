@@ -61,7 +61,7 @@ object InitialLoad {
     val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
     db.dropDatabase()
     Masterdata.companies
-      .filter(c => c.sector == Sector.IT || c.sector == Sector.Industrials) // import is limited to these, because we have a limit of 500 API calls to alphavantage.co per day only
+      .filter(c => Config.dataBusinessSectorFilter.contains(c.name.toLowerCase))
       .foreach { c =>
         val ts = retriever.receiveFull(c.symbol)
         val continousTs = addMissingDays(ts)
