@@ -23,12 +23,12 @@ docker run -d --name=influxdb \
 
 # chronograf
 # see https://docs.docker.com/samples/library/chronograf/
-mkdir -p "$dataRoot/chronograf"
-docker run -d --name=chronograf \
-      -p 8888:8888 \
-      --net=influxdb \
-      -v "$dataRoot/chronograf":/var/lib/chronograf \
-      chronograf:1.7 --influxdb-url=http://influxdb:8086
+#mkdir -p "$dataRoot/chronograf"
+#docker run -d --name=chronograf \
+#      -p 8888:8888 \
+#      --net=influxdb \
+#      -v "$dataRoot/chronograf":/var/lib/chronograf \
+#      chronograf:1.7 --influxdb-url=http://influxdb:8086
 
 # NOT YET USED
 #mkdir -p "$dataRoot/kapacitor"
