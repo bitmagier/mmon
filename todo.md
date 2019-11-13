@@ -3,6 +3,7 @@ TODO
 
 coding
 -
+* Instead of filling missing week-days in quotes, use the last available stock market day value calculation the daily diff
 * Continously running / incremental update mode
 * Online-Update mechanism for BootstrapData (e.g. S&P 500 members)
 * Create bigger (unified) company base
