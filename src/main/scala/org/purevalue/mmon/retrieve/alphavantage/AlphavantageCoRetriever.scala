@@ -62,7 +62,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
     log.info(s"Retrieving stock quotes for symbol '$symbol' from $AlphavantageHostname")
     if (lastApiCallTime != null) {
       val toWait = MaxApiCallRate.minus(Duration.between(lastApiCallTime, LocalDateTime.now()))
-      if (toWait.toMillis > 0)
+      if (toWait.toMillis > 10)
         log.info(s"Waiting ${toWait.getSeconds} seconds before next API call to $AlphavantageHostname ...")
         Thread.sleep(toWait.toMillis)
     }
