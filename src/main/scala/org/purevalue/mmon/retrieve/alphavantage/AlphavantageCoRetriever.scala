@@ -53,7 +53,9 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
       if (useSampleData) SampleData
       else if (preferLocalCachedData) Cache.readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
       else readFromApi(symbol)
-    parse(rawData)
+    val result = parse(rawData)
+    Cache.updateCache(symbol, rawData)
+    result
   }
 
   private def apiEndpoint(apiKey: String, symbol: String): URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
@@ -72,9 +74,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
     try {
       reader = Source.fromURL(apiEndpoint(ApiKey, symbol))
       lastApiCallTime = LocalDateTime.now()
-      val result = reader.mkString
-      Cache.updateCache(symbol, result)
-      result
+      reader.mkString
     } finally {
       if (reader != null) reader.close()
     }
