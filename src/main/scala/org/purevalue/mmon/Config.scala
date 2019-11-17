@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 object Config {
-  private val log = LoggerFactory.getLogger("Config")
+  private val log = LoggerFactory.getLogger("org.purevalue.mmon.Config")
   def validate(): Unit = {
     for (f <- dataBusinessSectorFilter) {
       if (!Masterdata.sectors.map(_.name).contains(f)) {

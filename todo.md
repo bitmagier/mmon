@@ -8,6 +8,7 @@ coding
 * Continously running / incremental update mode
 
 * Online-Update mechanism for BootstrapData (e.g. S&P 500 members)
+    => https://datahub.io/core/s-and-p-500-companies#resource-s-and-p-500-companies_zip
 
 * Create bigger (unified) company base
     * include major indicies of other trade markets under a common data model

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable.ListBuffer
 
 object InitialLoad {
-  private val log = LoggerFactory.getLogger("InitialLoad")
+  private val log = LoggerFactory.getLogger("org.purevalue.mmon.InitialLoad")
   private val db: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
 
   def initialLoad(preferLocalCachedData: Boolean = false): Unit = {

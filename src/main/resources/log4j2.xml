@@ -9,6 +9,9 @@
         <Logger name="org.purevalue" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <logger name="org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </logger>
         <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>

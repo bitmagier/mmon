@@ -300,7 +300,7 @@ object BootstrapData {
     Company("LRCX", "Lam Research", IT),
     Company("LEG", "Leggett & Platt", ConsumerDiscretionary),
     Company("LEN", "Lennar Corp.", ConsumerDiscretionary),
-    Company("LUK", "Leucadia National Corp.", Financials),
+// obsolete    Company("LUK", "Leucadia National Corp.", Financials),
     Company("LLY", "Lilly (Eli) & Co.", Healthcare),
     Company("LNC", "Lincoln National", Financials),
     Company("LKQ", "LKQ Corporation", ConsumerDiscretionary),

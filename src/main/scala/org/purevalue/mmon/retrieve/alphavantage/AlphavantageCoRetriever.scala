@@ -49,12 +49,22 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
 }"""
 
   override def receiveFull(symbol: String): TimeSeriesDaily = {
-    val rawData: String =
-      if (useSampleData) SampleData
-      else if (preferLocalCachedData) Cache.readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
-      else readFromApi(symbol)
+    var isFreshData = false
+    var rawData: String = _
+    if (useSampleData) rawData = SampleData
+    else if (preferLocalCachedData) {
+      val s = Cache.readFromLocalCache(symbol)
+      if (s.isEmpty) {
+          rawData = readFromApi(symbol)
+          isFreshData = true
+        }
+      }
+    else {
+      rawData = readFromApi(symbol)
+      isFreshData = true
+    }
     val result = parse(rawData)
-    if (!useSampleData) Cache.updateCache(symbol, rawData)
+    if (isFreshData) Cache.updateCache(symbol, rawData)
     result
   }
 
@@ -72,7 +82,9 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
 
     var reader: BufferedSource = null
     try {
-      reader = Source.fromURL(apiEndpoint(ApiKey, symbol))
+      val url = apiEndpoint(ApiKey, symbol)
+      log.debug(s"GET $url")
+      reader = Source.fromURL(url)
       lastApiCallTime = LocalDateTime.now()
       reader.mkString
     } finally {
