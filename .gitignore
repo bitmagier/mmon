@@ -4,3 +4,4 @@
 /project/
 /target/
 /infrastructure/dev/runtime-data/*
+/src/main/resources/custom.conf
