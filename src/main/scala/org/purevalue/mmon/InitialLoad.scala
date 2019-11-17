@@ -3,7 +3,8 @@ package org.purevalue.mmon
 import java.time.LocalDate
 
 import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
-import org.purevalue.mmon.retrieve.{AlphavantageCoRetriever, QuotesRetriever}
+import org.purevalue.mmon.retrieve.QuotesRetriever
+import org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever
 import org.purevalue.mmon.tsdb.{Influx, InfluxDbClient}
 import org.slf4j.LoggerFactory
 

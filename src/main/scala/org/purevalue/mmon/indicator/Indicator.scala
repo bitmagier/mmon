@@ -2,7 +2,7 @@ package org.purevalue.mmon.indicator
 
 import java.time.LocalDate
 
-import org.purevalue.mmon.{Company, Quote, Sector}
+import org.purevalue.mmon.{BootstrapData, Company, Quote, Sector}
 
 
 trait Indicator {
@@ -45,8 +45,7 @@ case class SectorHarmonyIndicator(name: String, sector: Sector) extends Indicato
 
 
 object Indicators {
-  val all: Seq[Indicator] = List(
-    SectorHarmonyIndicator("SectorHarmonyIT", Sector.IT),
-    SectorHarmonyIndicator("SectorHarmonyIndustrials", Sector.Industrials)
-  )
+  val all: Set[Indicator] =
+    for (sector <- BootstrapData.sectors) yield SectorHarmonyIndicator(s"SectorHarmony${sector.name}", sector)
+
 }

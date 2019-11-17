@@ -2,6 +2,7 @@ package org.purevalue.mmon.retrieve
 
 import java.time.LocalDate
 
+import org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever
 import org.purevalue.mmon.{DayQuote, Quote, TimeSeriesDaily}
 import org.scalatest.FunSuite
 

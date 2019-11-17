@@ -1,11 +1,11 @@
-package org.purevalue.mmon.retrieve
+package org.purevalue.mmon.retrieve.alphavantage
 
-import java.io.{BufferedWriter, File, FileWriter}
 import java.net.URL
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
+import org.purevalue.mmon.retrieve.QuotesRetriever
 import org.purevalue.mmon.{Config, DayQuote, Quote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
@@ -14,7 +14,6 @@ import scala.io.{BufferedSource, Source}
 
 class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends QuotesRetriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
-  private val localCacheDir = new File(Option(System.getProperty("java.io.tmpdir")).getOrElse("/tmp") + "/mmon-cache")
   private var lastApiCallTime: LocalDateTime = _
 
   private val AlphavantageHostname = "www.alphavantage.co"
@@ -52,7 +51,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   override def receiveFull(symbol: String): TimeSeriesDaily = {
     val rawData: String =
       if (useSampleData) SampleData
-      else if (preferLocalCachedData) readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
+      else if (preferLocalCachedData) Cache.readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
       else readFromApi(symbol)
     parse(rawData)
   }
@@ -73,7 +72,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
       reader = Source.fromURL(apiEndpoint(ApiKey, symbol))
       lastApiCallTime = LocalDateTime.now()
       val result = reader.mkString
-      updateCache(symbol, result)
+      Cache.updateCache(symbol, result)
       result
     } finally {
       if (reader != null) reader.close()
@@ -109,41 +108,5 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
         log.error(s"Could not parse quote raw data:\n$rawData", e)
         throw e
     }
-  }
-
-  private def updateCache(symbol: String, rawData: String):Unit = {
-    localCacheDir.mkdirs()
-    clearCache(symbol)
-
-    val w = new BufferedWriter(new FileWriter(cacheFile(symbol)))
-    w.write(rawData)
-    w.close()
-  }
-
-  private def clearCache(symbol: String):Unit = {
-    localCacheDir
-      .listFiles((_, file) => file.startsWith(symbol) && file.endsWith(".rawdata"))
-      .foreach {
-        _.delete()
-      }
-  }
-
-  def readFromLocalCache(symbol: String): Option[String] = {
-    val f = cacheFile(symbol)
-    if (f.exists()) {
-      log.info(s"reading rawdata for symbol $symbol from local cache")
-      val s = Source.fromFile(f)
-      val result = s.mkString
-      s.close()
-      Option(result)
-    } else {
-      log.warn(s"no up-to-date local cache file present for '$symbol'")
-      Option.empty
-    }
-  }
-
-  private def cacheFile(symbol: String): File = {
-    val day: String = ISO_LOCAL_DATE.format(LocalDate.now())
-    new File(localCacheDir, s"$symbol-$day.rawdata")
   }
 }

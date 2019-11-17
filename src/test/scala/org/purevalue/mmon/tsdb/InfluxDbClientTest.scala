@@ -2,8 +2,8 @@ package org.purevalue.mmon.tsdb
 
 import java.time.LocalDate
 
-import org.purevalue.mmon.retrieve.AlphavantageCoRetriever
 import org.purevalue.mmon._
+import org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 import scala.io.Source
