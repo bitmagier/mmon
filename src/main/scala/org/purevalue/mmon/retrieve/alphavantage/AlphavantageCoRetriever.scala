@@ -48,21 +48,17 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   }
 }"""
 
-  override def receiveFull(symbol: String): TimeSeriesDaily = {
-    var isFreshData = false
-    var rawData: String = _
-    if (useSampleData) rawData = SampleData
+  def getRawData(symbol: String): (String, Boolean) = {
+    if (useSampleData) (SampleData, false)
     else if (preferLocalCachedData) {
-      val s = Cache.readFromLocalCache(symbol)
-      if (s.isEmpty) {
-          rawData = readFromApi(symbol)
-          isFreshData = true
-        }
-      }
-    else {
-      rawData = readFromApi(symbol)
-      isFreshData = true
-    }
+      val cache = Cache.readFromLocalCache(symbol)
+      if (cache.isDefined) (cache.get, false)
+      else (readFromApi(symbol), true)
+    } else (readFromApi(symbol), true)
+  }
+
+  override def receiveFull(symbol: String): TimeSeriesDaily = {
+    val (rawData, isFreshData) = getRawData(symbol)
     val result = parse(rawData)
     if (isFreshData) Cache.updateCache(symbol, rawData)
     result
