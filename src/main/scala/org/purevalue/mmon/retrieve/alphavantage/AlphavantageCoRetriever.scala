@@ -48,7 +48,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   }
 }"""
 
-  def getRawData(symbol: String): (String, Boolean) = {
+  private def getRawData(symbol: String): (String, Boolean) = {
     if (useSampleData) (SampleData, false)
     else if (preferLocalCachedData) {
       val cache = Cache.readFromLocalCache(symbol)
