@@ -58,11 +58,16 @@ object InitialLoad {
     TimeSeriesDaily(ts.symbol, ts.timeSeries ::: addedDays.toList)
   }
 
+  private def companyFilter = (c: Company) => {
+    Config.dataBusinessSectorFilter.isEmpty ||
+      Config.dataBusinessSectorFilter.contains(c.sector.name)
+  }
+
   private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
     val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
     db.dropDatabase()
     Masterdata.companies
-      .filter(c => Config.dataBusinessSectorFilter.contains(c.sector.name))
+      .filter(companyFilter)
       .foreach { c =>
         val ts = retriever.receiveFull(c.symbol)
         val continousTs = addMissingDays(ts)
@@ -78,7 +83,7 @@ object InitialLoad {
     val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
     var iValues = ListBuffer[DayValue]()
 
-    implicit val ordering:Ordering[LocalDate] = Util.localDateOrdering
+    implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
     val lastDayOfData = iQuotesPerCompany.values.map(_.map(_.date).max).max
     var day = iQuotesPerCompany.values.map(_.map(_.date).min).min.plusDays(1)
     log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
@@ -112,18 +117,18 @@ object InitialLoad {
     for (year <- dataRangeFrom.getYear to dataRangeTo.getYear) {
       _applyIndicators(
         LocalDate.ofYearDay(year, 1),
-        LocalDate.ofYearDay(year+1, 1)
+        LocalDate.ofYearDay(year + 1, 1)
       )
     }
   }
 
-  private def _applyIndicators(from:LocalDate, to:LocalDate): Unit = {
+  private def _applyIndicators(from: LocalDate, to: LocalDate): Unit = {
     val quotesPerCompany: Map[String, List[DayQuote]] =
       db.readQuotes(from, to)
         .groupBy(_.symbol)
         .mapValues(v =>
           v.flatMap(_.timeSeries)
-          .toList
+            .toList
         )
 
     Indicators.all.foreach(i => {
