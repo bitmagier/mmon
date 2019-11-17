@@ -54,7 +54,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
       else if (preferLocalCachedData) Cache.readFromLocalCache(symbol).getOrElse(readFromApi(symbol))
       else readFromApi(symbol)
     val result = parse(rawData)
-    Cache.updateCache(symbol, rawData)
+    if (!useSampleData) Cache.updateCache(symbol, rawData)
     result
   }
 
