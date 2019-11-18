@@ -327,7 +327,7 @@ object BootstrapData {
     Company("MET", "MetLife Inc.", Financials),
     Company("MTD", "Mettler Toledo", Healthcare),
     Company("MGM", "MGM Resorts International", ConsumerDiscretionary),
-    Company("KORS", "Michael Kors Holdings", ConsumerDiscretionary),
+//     Company("KORS", "Michael Kors Holdings", ConsumerDiscretionary),
     Company("MCHP", "Microchip Technology", IT),
     Company("MU", "Micron Technology", IT),
     Company("MSFT", "Microsoft Corp.", IT),
