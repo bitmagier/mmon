@@ -81,32 +81,33 @@ object InitialLoad {
       .map(_.symbol)
       .toSet
     val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
+
     var iValues = ListBuffer[DayValue]()
+    if (iQuotesPerCompany.nonEmpty) {
+      implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
+      val lastDayOfData = iQuotesPerCompany.values.map(_.map(_.date).max).max
+      var day = iQuotesPerCompany.values.map(_.map(_.date).min).min.plusDays(1)
+      log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
+      do {
+        val prevDayData: Map[String, Quote] = iQuotesPerCompany
+          .flatMap(x =>
+            x._2.find(_.date == day.minusDays(1))
+              .map(q => x._1 -> q.quote)
+          )
+        val currentDayData: Map[String, Quote] = iQuotesPerCompany
+          .flatMap(x =>
+            x._2.find(_.date == day)
+              .map(q => x._1 -> q.quote)
+          )
+        val idx = i.calc(prevDayData, currentDayData)
+        if (idx.isInfinite || idx.isNaN) {
+          throw new Exception(s"Indicator ${i.name}: invalid value '${idx}' calculated for day ${day}")
+        }
+        iValues += DayValue(day, idx)
 
-    implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
-    val lastDayOfData = iQuotesPerCompany.values.map(_.map(_.date).max).max
-    var day = iQuotesPerCompany.values.map(_.map(_.date).min).min.plusDays(1)
-    log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
-    do {
-      val prevDayData: Map[String, Quote] = iQuotesPerCompany
-        .flatMap(x =>
-          x._2.find(_.date == day.minusDays(1))
-            .map(q => x._1 -> q.quote)
-        )
-      val currentDayData: Map[String, Quote] = iQuotesPerCompany
-        .flatMap(x =>
-          x._2.find(_.date == day)
-            .map(q => x._1 -> q.quote)
-        )
-      val idx = i.calc(prevDayData, currentDayData)
-      if (idx.isInfinite || idx.isNaN) {
-        throw new Exception(s"Indicator ${i.name}: invalid value '${idx}' calculated for day ${day}")
-      }
-      iValues += DayValue(day, idx)
-
-      day = day.plusDays(1)
-    } while (!day.isAfter(lastDayOfData))
-
+        day = day.plusDays(1)
+      } while (!day.isAfter(lastDayOfData))
+    }
     iValues.toList
   }
 
