@@ -1,18 +1,19 @@
-package org.purevalue.mmon.retrieve.alphavantage
+package org.purevalue.mmon.retrieve.quotes.alphavantage
 
 import java.net.URL
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
-import org.purevalue.mmon.retrieve.QuotesRetriever
+import org.purevalue.mmon.retrieve.Retriever
 import org.purevalue.mmon.{Config, DayQuote, Quote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
 
+case class UnknownSymbolException(rawData:String) extends Exception(rawData)
 
-class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends QuotesRetriever {
+class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends Retriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
   private var lastApiCallTime: LocalDateTime = _
 
@@ -57,8 +58,19 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
     } else (readFromApi(symbol), true)
   }
 
-  override def receiveFull(symbol: String): TimeSeriesDaily = {
+  def decodeAndThrowError(rawData: String): Unit = {
+    if (rawData.contains(s""""Invalid API call. Please retry""")) {
+      throw UnknownSymbolException(rawData)
+    } else {
+      throw new Exception(rawData)
+    }
+  }
+
+  override def retrieveFull(symbol: String): TimeSeriesDaily = {
     val (rawData, isFreshData) = getRawData(symbol)
+    if (rawData.matches("\\{\\s*\"Error Message\":.*")) {
+      decodeAndThrowError(rawData)
+    }
     val result = parse(rawData)
     if (isFreshData) Cache.updateCache(symbol, rawData)
     result
@@ -114,8 +126,8 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
       )
     } catch {
       case e: Exception =>
-        log.error(s"Could not parse quote raw data:\n$rawData", e)
-        throw e
+          log.error(s"Could not parse quote raw data:\n$rawData", e)
+          throw e
     }
   }
 }

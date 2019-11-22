@@ -1,4 +1,4 @@
-package org.purevalue.mmon.retrieve.alphavantage
+package org.purevalue.mmon.retrieve.quotes.alphavantage
 
 import java.io.{BufferedWriter, File, FileWriter}
 import java.time.LocalDate
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.io.Source
 
 private[alphavantage] object Cache {
-  private val log = LoggerFactory.getLogger("org.purevalue.mmon.retrieve.alphavantage.Cache")
+  private val log = LoggerFactory.getLogger("org.purevalue.mmon.retrieve.quotes.alphavantage.Cache")
   private val localCacheDir: File = new File(Config.alphavantageCacheDir)
 
   private def clearCache(symbol: String): Unit = {

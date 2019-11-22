@@ -21,6 +21,8 @@ object Config {
   def alphavantageApiKey: String = conf.getString("retrieve.alphavantage.api-key")
   def alphavantageApiCallDelay: Duration = conf.getDuration("retrieve.alphavantage.api-call-delay")
   def alphavantageCacheDir:String = conf.getString("retrieve.alphavantage.cache-dir")
+  def maxMissingCompanies:Int = conf.getInt("retrieve.max-missing-companies")
+
   def influxdbHostname: String = conf.getString("influxdb.hostname")
   def influxdbDatabase: String = conf.getString("influxdb.database")
   def influxdbMeasurementQuote: String = conf.getString("influxdb.measurement.quote")
@@ -29,4 +31,5 @@ object Config {
   def influxAsyncWriteTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-write")
 
   def dataBusinessSectorFilter:Set[String] = conf.getStringList("data.business-sector-filter").asScala.toSet
+
 }
