@@ -14,9 +14,9 @@ object InitialLoad {
   private val log = LoggerFactory.getLogger("org.purevalue.mmon.InitialLoad")
   private val db: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
 
-  def initialLoad(preferLocalCachedData: Boolean = false): Unit = {
+  def initialLoad(preferLocalCachedData: Boolean = false, dropDatabase: Boolean = true): Unit = {
     try {
-      _importCompanyQuotes(preferLocalCachedData)
+      _importCompanyQuotes(preferLocalCachedData, dropDatabase)
       _applyIndicators()
     } catch {
       case e: Throwable =>
@@ -63,10 +63,10 @@ object InitialLoad {
       Config.dataBusinessSectorFilter.contains(c.sector.name)
   }
 
-  private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
+  private def _importCompanyQuotes(preferLocalCachedData: Boolean, dropDatabase: Boolean): Unit = {
     val retriever: Retriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
-    db.dropDatabase()
-    var missingCompanyCounter:Int = 0
+    if (dropDatabase) db.dropDatabase()
+    var missingCompanyCounter: Int = 0
     Masterdata.companies
       .filter(companyFilter)
       .foreach { c =>
