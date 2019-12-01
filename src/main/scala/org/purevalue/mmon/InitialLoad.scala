@@ -3,8 +3,8 @@ package org.purevalue.mmon
 import java.time.LocalDate
 
 import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
-import org.purevalue.mmon.retrieve.QuotesRetriever
-import org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever
+import org.purevalue.mmon.retrieve.Retriever
+import org.purevalue.mmon.retrieve.quotes.alphavantage.{AlphavantageCoRetriever, UnknownSymbolException}
 import org.purevalue.mmon.tsdb.{Influx, InfluxDbClient}
 import org.slf4j.LoggerFactory
 
@@ -14,9 +14,9 @@ object InitialLoad {
   private val log = LoggerFactory.getLogger("org.purevalue.mmon.InitialLoad")
   private val db: InfluxDbClient = new InfluxDbClient(Influx.influxHostName, Influx.influxDbName)
 
-  def initialLoad(preferLocalCachedData: Boolean = false): Unit = {
+  def initialLoad(preferLocalCachedData: Boolean = false, dropDatabase: Boolean = true): Unit = {
     try {
-      _importCompanyQuotes(preferLocalCachedData)
+      _importCompanyQuotes(preferLocalCachedData, dropDatabase)
       _applyIndicators()
     } catch {
       case e: Throwable =>
@@ -63,15 +63,26 @@ object InitialLoad {
       Config.dataBusinessSectorFilter.contains(c.sector.name)
   }
 
-  private def _importCompanyQuotes(preferLocalCachedData: Boolean): Unit = {
-    val retriever: QuotesRetriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
-    db.dropDatabase()
+  private def _importCompanyQuotes(preferLocalCachedData: Boolean, dropDatabase: Boolean): Unit = {
+    val retriever: Retriever = new AlphavantageCoRetriever(preferLocalCachedData = preferLocalCachedData)
+    if (dropDatabase) db.dropDatabase()
+    var missingCompanyCounter: Int = 0
     Masterdata.companies
       .filter(companyFilter)
       .foreach { c =>
-        val ts = retriever.receiveFull(c.symbol)
-        val continousTs = addMissingDays(ts)
-        db.writeQuotes(c, continousTs)
+        try {
+          val ts = retriever.retrieveFull(c.symbol)
+          val continousTs = addMissingDays(ts)
+          db.writeQuotes(c, continousTs)
+        } catch {
+          case UnknownSymbolException(_) => {
+            log.warn(s"Quotes for company symbol $c not found")
+            missingCompanyCounter += 1
+            if (missingCompanyCounter > Config.maxMissingCompanies) {
+              throw new Exception(s"Exceeded limit (${Config.maxMissingCompanies}) of max missing companies")
+            }
+          }
+        }
       }
   }
 

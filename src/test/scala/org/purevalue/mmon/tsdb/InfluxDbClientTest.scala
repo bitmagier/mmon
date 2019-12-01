@@ -3,7 +3,7 @@ package org.purevalue.mmon.tsdb
 import java.time.LocalDate
 
 import org.purevalue.mmon._
-import org.purevalue.mmon.retrieve.alphavantage.AlphavantageCoRetriever
+import org.purevalue.mmon.retrieve.quotes.alphavantage.AlphavantageCoRetriever
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 import scala.io.Source
@@ -20,24 +20,26 @@ class InfluxDbClientTest extends FunSuite with BeforeAndAfter {
   }
 
   test("we can read the quotes, what we have written") {
-    val company1 = BootstrapData.sp500Companies.find(c => c.symbol == "AAL").get
+    val company1 = Company("ABC", "AmerisourceBergen Corp", Sector.Healthcare)
     val ts1 = new AlphavantageCoRetriever().parse(
-      Source.fromResource("mmon-cache/AAL-2019-10-20.rawdata").mkString)
+      Source.fromResource("ABC-2019-11-17.rawdata").mkString
+    )
     db.writeQuotes(company1, ts1)
 
-    val company2 = BootstrapData.sp500Companies.find(c => c.symbol == "GOOGL").get
+    val company2 = Company("GOOGL", "Alphabet Inc Class A", Sector.IT)
     val ts2 = new AlphavantageCoRetriever().parse(
-      Source.fromResource("mmon-cache/GOOGL-2019-10-20.rawdata").mkString)
+      Source.fromResource("GOOGL-2019-11-15.rawdata").mkString
+    )
     db.writeQuotes(company2, ts2)
 
 
-    val q: List[TimeSeriesDaily] = db.readQuotes(LocalDate.ofYearDay(2000, 1), LocalDate.ofYearDay(2020,1)).toList
+    val q: List[TimeSeriesDaily] = db.readQuotes(LocalDate.ofYearDay(1999, 1), LocalDate.ofYearDay(2020,1)).toList
 
-    assert(q.groupBy(_.symbol).keySet == Set("AAL", "GOOGL"))
+    assert(q.groupBy(_.symbol).keySet == Set("ABC", "GOOGL"))
 
     // check if we have same dates as we have written
     assert(
-      q.filter(_.symbol == "AAL")
+      q.filter(_.symbol == "ABC")
         .flatMap(_.timeSeries.map(_.date))
         .toSet
         ==

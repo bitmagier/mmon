@@ -5,6 +5,8 @@ coding
 -
 * Instead of filling missing week-days in quotes, use the last available stock market day value calculation the daily diff
 
+* provide a flag to use up to x days older cached data 
+
 * Continously running / incremental update mode
 
 * Online-Update mechanism for BootstrapData (e.g. S&P 500 members)

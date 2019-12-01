@@ -1,6 +1,9 @@
 package org.purevalue.mmon
 
+import org.purevalue.mmon.retrieve.masterdata.datahub.DatahubCompanyRetriever
+
 object Masterdata {
-  def sectors:Set[Sector] = BootstrapData.sectors
-  def companies:List[Company] = BootstrapData.sp500Companies
+  lazy val _companies:List[Company] = new DatahubCompanyRetriever().retrieveCompanies()
+  def sectors:Set[Sector] = Sector.all
+  def companies:List[Company] = _companies
 }
