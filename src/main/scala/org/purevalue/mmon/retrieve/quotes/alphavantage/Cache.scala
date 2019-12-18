@@ -44,7 +44,7 @@ private[alphavantage] object Cache {
       s.close()
       Option(result)
     } else {
-      log.warn(s"no up-to-date local cache file present for '$symbol'")
+      log.info(s"no up-to-date local cache file present for '$symbol'")
       Option.empty
     }
   }
