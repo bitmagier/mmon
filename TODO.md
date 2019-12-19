@@ -5,7 +5,7 @@ coding
 -
 * Instead of filling missing week-days in quotes, use the last available stock market day value calculation the daily diff
 
-* provide a flag to use up to x days older cached data 
+* provide a config option to use up to x days older cached data too (default=3) 
 
 * Continously running / incremental update mode
 
