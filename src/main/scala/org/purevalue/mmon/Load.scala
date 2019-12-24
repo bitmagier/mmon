@@ -87,8 +87,51 @@ object Load {
       }
   }
 
-  def calcIndicator(indicator: Indicator, quotes: Map[String, List[DayQuote]]): List[DayValue] = {
+  //////////////// attention: fresh code below ////////////
 
+  private def filterQuotesOfDay(quotes: Map[String, List[DayQuote]], day: LocalDate): Map[String, Quote] = {
+    quotes.flatMap(x =>
+      x._2.find(_.date == day)
+        .map(q => x._1 -> q.quote)
+    )
+  }
+
+  /**
+   * @param indicator Indicator (definition) to calculate
+   * @param quotes relevant quotes for indicator
+   * @return calculated indicator values
+   */
+  private[mmon] def calcIndicator(indicator: Indicator, quotes: Map[String, List[DayQuote]]): List[DayValue] = {
+    if (quotes.isEmpty)
+      List[DayValue]()
+
+    implicit val localDateOrdering: Ordering[LocalDate] = Util.localDateOrdering
+
+    val veryLastDayOfData: LocalDate = quotes.values
+      .map(_.map(_.date).max)
+      .max
+    var day: LocalDate = quotes.values
+      .map(_.map(_.date).min)
+      .min
+
+    log.info(s"Calculating indicator '${indicator.name}' from $day to $veryLastDayOfData")
+
+    val allDaySet:Set[LocalDate] = quotes.flatMap(_._2.map(_.date)).toSet // all days with quotes (as a set)
+    val indicatorValues = ListBuffer[DayValue]()
+
+    while (day.isBefore(veryLastDayOfData)) {
+      val prevDay = day
+      do {
+        day = day.plusDays(1)
+      } while (!(day.isAfter(veryLastDayOfData) || allDaySet.contains(day)))
+      if (allDaySet.contains(day)) {
+        val precedingDayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, prevDay)
+        val dayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, day)
+        val iValue = indicator.calc(precedingDayQuotes, dayQuotes)
+        indicatorValues += DayValue(day, iValue)
+      }
+    }
+    indicatorValues.toList
   }
 
   // calculates the values of the indicator based on a (to be filtered) set of company quotes
@@ -101,46 +144,46 @@ object Load {
     calcIndicator(i: Indicator, relevantQuotes: Map[String, List[DayQuote]])
   }
 
-//  @deprecated("not working with weekend-gaps, but based on quotes values provided for each sequential day")
-//  private def calcIndicatorValues(i: Indicator, quotesPerCompany: Map[String, List[DayQuote]]): List[DayValue] = {
-//    val iSymbols: Set[String] = Masterdata.companies
-//      .filter(c => i.companyIncluded(c))
-//      .map(_.symbol)
-//      .toSet
-//    val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
-//
-//    var iValues = ListBuffer[DayValue]()
-//    if (iQuotesPerCompany.nonEmpty) {
-//      implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
-//      val lastDayOfData = iQuotesPerCompany.values
-//        .map(_.map(_.date).max)
-//        .max
-//      var day = iQuotesPerCompany.values
-//        .map(_.map(_.date).min)
-//        .min.plusDays(1)
-//      log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
-//      do {
-//        val prevDayData: Map[String, Quote] = iQuotesPerCompany
-//          .flatMap(x =>
-//            x._2.find(_.date == day.minusDays(1))
-//              .map(q => x._1 -> q.quote)
-//          )
-//        val currentDayData: Map[String, Quote] = iQuotesPerCompany
-//          .flatMap(x =>
-//            x._2.find(_.date == day)
-//              .map(q => x._1 -> q.quote)
-//          )
-//        val idx = i.calc(prevDayData, currentDayData)
-//        if (idx.isInfinite || idx.isNaN) {
-//          throw new Exception(s"Indicator ${i.name}: invalid value '${idx}' calculated for day ${day}")
-//        }
-//        iValues += DayValue(day, idx)
-//
-//        day = day.plusDays(1)
-//      } while (!day.isAfter(lastDayOfData))
-//    }
-//    iValues.toList
-//  }
+  //  @deprecated("not working with weekend-gaps, but based on quotes values provided for each sequential day")
+  //  private def calcIndicatorValues(i: Indicator, quotesPerCompany: Map[String, List[DayQuote]]): List[DayValue] = {
+  //    val iSymbols: Set[String] = Masterdata.companies
+  //      .filter(c => i.companyIncluded(c))
+  //      .map(_.symbol)
+  //      .toSet
+  //    val iQuotesPerCompany = quotesPerCompany.filterKeys(x => iSymbols.contains(x))
+  //
+  //    var iValues = ListBuffer[DayValue]()
+  //    if (iQuotesPerCompany.nonEmpty) {
+  //      implicit val ordering: Ordering[LocalDate] = Util.localDateOrdering
+  //      val lastDayOfData = iQuotesPerCompany.values
+  //        .map(_.map(_.date).max)
+  //        .max
+  //      var day = iQuotesPerCompany.values
+  //        .map(_.map(_.date).min)
+  //        .min.plusDays(1)
+  //      log.info(s"Calculating indicator '${i.name}' from $day to $lastDayOfData")
+  //      do {
+  //        val prevDayData: Map[String, Quote] = iQuotesPerCompany
+  //          .flatMap(x =>
+  //            x._2.find(_.date == day.minusDays(1))
+  //              .map(q => x._1 -> q.quote)
+  //          )
+  //        val currentDayData: Map[String, Quote] = iQuotesPerCompany
+  //          .flatMap(x =>
+  //            x._2.find(_.date == day)
+  //              .map(q => x._1 -> q.quote)
+  //          )
+  //        val idx = i.calc(prevDayData, currentDayData)
+  //        if (idx.isInfinite || idx.isNaN) {
+  //          throw new Exception(s"Indicator ${i.name}: invalid value '${idx}' calculated for day ${day}")
+  //        }
+  //        iValues += DayValue(day, idx)
+  //
+  //        day = day.plusDays(1)
+  //      } while (!day.isAfter(lastDayOfData))
+  //    }
+  //    iValues.toList
+  //  }
 
   private def _applyIndicators(): Unit = {
     // load in chunks of 1 year, to prevent OutOfMemory/Timeout
@@ -167,4 +210,4 @@ object Load {
   }
 }
 
-// TODO simplify code
+// TODO simplify code -> refactor towards more clear method/function interfaces
