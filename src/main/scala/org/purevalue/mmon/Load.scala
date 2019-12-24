@@ -24,6 +24,7 @@ object Load {
     }
   }
 
+  /* entry point for indicator debugging purposes */
   def applyIndicators(): Unit = {
     try {
       _applyIndicators()
@@ -72,8 +73,8 @@ object Load {
       .foreach { c =>
         try {
           val ts = retriever.retrieveFull(c.symbol)
-          val continousTs = addMissingDays(ts)
-          db.writeQuotes(c, continousTs)
+          val continuousTs = addMissingDays(ts)
+          db.writeQuotes(c, continuousTs)
         } catch {
           case UnknownSymbolException(_) => {
             log.warn(s"Quotes for company symbol $c not found")
