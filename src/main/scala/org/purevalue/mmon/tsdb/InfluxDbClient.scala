@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit
 import com.paulgoldbaum.influxdbclient.Parameter.Precision.Precision
 import com.paulgoldbaum.influxdbclient.Parameter.{Consistency, Precision}
 import com.paulgoldbaum.influxdbclient._
-import org.purevalue.mmon.indicator.{DayValue, Indicator}
 import org.purevalue.mmon._
+import org.purevalue.mmon.indicator.{DayValue, Indicator}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Await

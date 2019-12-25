@@ -6,7 +6,7 @@ import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
 import org.purevalue.mmon.retrieve.Retriever
-import org.purevalue.mmon.{Config, DayQuote, Masterdata, Quote, TimeSeriesDaily}
+import org.purevalue.mmon._
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}

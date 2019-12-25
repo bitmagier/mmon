@@ -14,8 +14,12 @@ Then start the development infrastructure:
 
 and the program with:
 
-    sbt "run c"
+    sbt "run l"
 This will import the available history of the daily quotes of all S&P500 companies into an influx database and create the custom indicators.  
+
+To continue the import, based on an existing database, this can be done by:
+
+    sbt "run c"   
 
 Applying indicators only (to an already created database), can be done by:
     

@@ -102,36 +102,36 @@ object Load {
    * @return calculated indicator values
    */
   private[mmon] def calcIndicator(indicator: Indicator, quotes: Map[String, List[DayQuote]]): List[DayValue] = {
-    if (quotes.isEmpty)
+    if (quotes.isEmpty) {
       List[DayValue]()
+    } else {
+      implicit val localDateOrdering: Ordering[LocalDate] = Util.localDateOrdering
+      val veryLastDayOfData: LocalDate = quotes.values
+        .map(_.map(_.date).max)
+        .max
+      var day: LocalDate = quotes.values
+        .map(_.map(_.date).min)
+        .min
 
-    implicit val localDateOrdering: Ordering[LocalDate] = Util.localDateOrdering
+      log.info(s"Calculating indicator '${indicator.name}' from $day to $veryLastDayOfData")
 
-    val veryLastDayOfData: LocalDate = quotes.values
-      .map(_.map(_.date).max)
-      .max
-    var day: LocalDate = quotes.values
-      .map(_.map(_.date).min)
-      .min
+      val allDaySet: Set[LocalDate] = quotes.flatMap(_._2.map(_.date)).toSet // all days with quotes (as a set)
+      val indicatorValues = ListBuffer[DayValue]()
 
-    log.info(s"Calculating indicator '${indicator.name}' from $day to $veryLastDayOfData")
-
-    val allDaySet:Set[LocalDate] = quotes.flatMap(_._2.map(_.date)).toSet // all days with quotes (as a set)
-    val indicatorValues = ListBuffer[DayValue]()
-
-    while (day.isBefore(veryLastDayOfData)) {
-      val prevDay = day
-      do {
-        day = day.plusDays(1)
-      } while (!(day.isAfter(veryLastDayOfData) || allDaySet.contains(day)))
-      if (allDaySet.contains(day)) {
-        val precedingDayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, prevDay)
-        val dayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, day)
-        val iValue = indicator.calc(precedingDayQuotes, dayQuotes)
-        indicatorValues += DayValue(day, iValue)
+      while (day.isBefore(veryLastDayOfData)) {
+        val prevDay = day
+        do {
+          day = day.plusDays(1)
+        } while (!(day.isAfter(veryLastDayOfData) || allDaySet.contains(day)))
+        if (allDaySet.contains(day)) {
+          val precedingDayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, prevDay)
+          val dayQuotes: Map[String, Quote] = filterQuotesOfDay(quotes, day)
+          val iValue = indicator.calc(precedingDayQuotes, dayQuotes)
+          indicatorValues += DayValue(day, iValue)
+        }
       }
+      indicatorValues.toList
     }
-    indicatorValues.toList
   }
 
   // calculates the values of the indicator based on a (to be filtered) set of company quotes
