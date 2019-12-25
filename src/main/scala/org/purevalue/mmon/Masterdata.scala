@@ -6,4 +6,5 @@ object Masterdata {
   lazy val _companies:List[Company] = new DatahubCompanyRetriever().retrieveCompanies()
   def sectors:Set[Sector] = Sector.all
   def companies:List[Company] = _companies
+  def companyBySymbol(symbol:String):Company = companies.find(_.symbol == symbol).get
 }

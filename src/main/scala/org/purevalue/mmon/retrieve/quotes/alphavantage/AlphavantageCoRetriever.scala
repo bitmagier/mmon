@@ -6,7 +6,7 @@ import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
 import org.purevalue.mmon.retrieve.Retriever
-import org.purevalue.mmon.{Config, DayQuote, Quote, TimeSeriesDaily}
+import org.purevalue.mmon.{Config, DayQuote, Masterdata, Quote, TimeSeriesDaily}
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
@@ -79,7 +79,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   private def apiEndpoint(apiKey: String, symbol: String): URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
 
   private def readFromApi(symbol: String): String = {
-    log.info(s"Retrieving stock quotes for symbol '$symbol' from $AlphavantageHostname")
+    log.info(s"Retrieving stock quotes for symbol '$symbol' (${Masterdata.companyBySymbol(symbol)}) from $AlphavantageHostname")
     if (lastApiCallTime != null) {
       val toWaitMs = MaxApiCallRate.minus(Duration.between(lastApiCallTime, LocalDateTime.now())).toMillis
       if (toWaitMs > 0) {
