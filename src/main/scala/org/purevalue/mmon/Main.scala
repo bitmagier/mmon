@@ -26,3 +26,4 @@ object Main {
   }
 }
 
+// TODO real continue mode rememebering already imported company quotes of the day
