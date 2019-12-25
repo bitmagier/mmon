@@ -205,7 +205,9 @@ object Load {
 
     Indicators.all.foreach(i => {
       val indicatorValues = calcIndcatorGivenFullQuotesDataset(i, quotesPerCompany)
-      db.writeIndicator(i, indicatorValues)
+      if (indicatorValues.nonEmpty) {
+        db.writeIndicator(i, indicatorValues)
+      }
     })
   }
 }

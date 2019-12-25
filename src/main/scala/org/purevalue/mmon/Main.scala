@@ -13,7 +13,7 @@ object Main {
       log.warn("Please provide action via commandline parameter.\n"
         + "l = InitialLoad\n"
         + "c = Continue mode using existing database\n"
-        + "i = Apply indicators only - requires previously loaded data"
+        + "i = Apply indicators only - requires previously loaded database with quotes"
       )
     else {
       args.head match {
