@@ -2,9 +2,10 @@ package org.purevalue.mmon
 
 import java.time.Duration
 
-import scala.collection.JavaConverters._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConverters._
 
 object Config {
   private val log = LoggerFactory.getLogger("org.purevalue.mmon.Config")

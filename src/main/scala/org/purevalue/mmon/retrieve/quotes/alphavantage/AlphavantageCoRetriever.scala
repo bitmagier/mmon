@@ -6,12 +6,12 @@ import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
 import org.purevalue.mmon.retrieve.Retriever
-import org.purevalue.mmon.{Config, DayQuote, Quote, TimeSeriesDaily}
+import org.purevalue.mmon._
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
 
-case class UnknownSymbolException(rawData:String) extends Exception(rawData)
+case class UnknownSymbolException(rawData: String) extends Exception(rawData)
 
 class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends Retriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
@@ -79,7 +79,8 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   private def apiEndpoint(apiKey: String, symbol: String): URL = new URL(s"https://$AlphavantageHostname/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$apiKey")
 
   private def readFromApi(symbol: String): String = {
-    log.info(s"Retrieving stock quotes for symbol '$symbol' from $AlphavantageHostname")
+    val companyName = Masterdata.companyBySymbol(symbol).name
+    log.info(s"Retrieving stock quotes for symbol '$symbol' (${companyName}) from $AlphavantageHostname")
     if (lastApiCallTime != null) {
       val toWaitMs = MaxApiCallRate.minus(Duration.between(lastApiCallTime, LocalDateTime.now())).toMillis
       if (toWaitMs > 0) {
@@ -126,8 +127,8 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
       )
     } catch {
       case e: Exception =>
-          log.error(s"Could not parse quote raw data:\n$rawData", e)
-          throw e
+        log.error(s"Could not parse quote raw data:\n$rawData", e)
+        throw e
     }
   }
 }
