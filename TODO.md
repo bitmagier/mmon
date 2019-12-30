@@ -13,13 +13,14 @@ coding
 * Create bigger (unified) company base
     * include major indicies of other trade markets under a common data model
     * add further potentially interesting attributes to companies  
+    * check/find source to load quotes
 
 * Support a list of API-Keys to be used in round robin
 
 * When API-Rate-limit is solved:
     * Enable the full S&P 500 base 
 
-* AUtomate creation of grafana dashboard(s)
+* Automate creation of grafana dashboard(s)
 
 other
 -
