@@ -1,6 +1,6 @@
 name := "mmon"
 
-version := "0.3.9"
+version := "0.5.1"
 
 scalaVersion := "2.12.10"
 

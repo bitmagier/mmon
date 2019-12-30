@@ -32,5 +32,5 @@ object Config {
   def influxAsyncWriteTimeout: Duration = conf.getDuration("influxdb.timeout.bulk-write")
 
   def dataBusinessSectorFilter:Set[String] = conf.getStringList("data.business-sector-filter").asScala.toSet
-
+  def dataCompanyBlacklist:Set[String] = conf.getStringList("data.company-blacklist").asScala.toSet
 }
