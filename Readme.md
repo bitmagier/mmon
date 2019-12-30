@@ -45,3 +45,6 @@ Requirements
 - sbt
 - internet connection 
 
+Exampe output
+-------------
+![](github/Opera%20Snapshot_2019-12-30_061248_localhost.png)
