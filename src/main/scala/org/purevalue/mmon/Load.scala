@@ -51,14 +51,16 @@ object Load {
           db.writeQuotes(c, ts)
         } catch {
           case UnknownSymbolException(_) => {
-            log.warn(s"Quotes for company symbol $c not found")
             missingCompanyCounter += 1
+            log.warn(s"Quotes for company symbol $c not found! (This is #$missingCompanyCounter for this kind of error " +
+              s"/ limit=${Config.maxMissingCompanies})")
             if (missingCompanyCounter > Config.maxMissingCompanies) {
               throw new Exception(s"Exceeded limit (${Config.maxMissingCompanies}) of max missing companies")
             }
           }
         }
       }
+    log.info(s"Company quote import succeeded (with $missingCompanyCounter missing)")
   }
 
   private def filterQuotesOfDay(quotes: Map[String, List[DayQuote]], day: LocalDate): Map[String, Quote] = {
