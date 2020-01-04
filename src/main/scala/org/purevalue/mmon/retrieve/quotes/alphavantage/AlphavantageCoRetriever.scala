@@ -23,7 +23,7 @@ class AlphavantageCoRetriever(useTestResponse: Option[String] = None, preferLoca
   private def getRawData(symbol: String): (String, Boolean) = {
     if (useTestResponse.isDefined) (useTestResponse.get, false)
     else if (preferLocalCachedData) {
-      val cache = Cache.readFromLocalCache(symbol)
+      val cache = Cache.readFromLocalCache(symbol, Config.maxCacheAge)
       if (cache.isDefined) (cache.get, false)
       else (readFromApi(symbol), true)
     } else (readFromApi(symbol), true)

@@ -21,8 +21,8 @@ private[alphavantage] object Cache {
       }
   }
 
-  private def cacheFile(symbol: String): File = {
-    val day: String = ISO_LOCAL_DATE.format(LocalDate.now())
+  private def cacheFileName(symbol:String, age:Int): File = {
+    val day: String = ISO_LOCAL_DATE.format(LocalDate.now().minusDays(age))
     new File(localCacheDir, s"$symbol-$day.rawdata")
   }
 
@@ -30,22 +30,27 @@ private[alphavantage] object Cache {
     localCacheDir.mkdirs()
     clearCache(symbol)
 
-    val w = new BufferedWriter(new FileWriter(cacheFile(symbol)))
+    val w = new BufferedWriter(new FileWriter(cacheFileName(symbol, 0)))
     w.write(rawData)
     w.close()
   }
 
-  def readFromLocalCache(symbol: String): Option[String] = {
-    val f = cacheFile(symbol)
-    if (f.exists()) {
-      log.info(s"reading rawdata for symbol $symbol from local cache")
-      val s = Source.fromFile(f)
-      val result = s.mkString
-      s.close()
-      Option(result)
-    } else {
-      log.info(s"no up-to-date local cache file present for '$symbol'")
-      Option.empty
-    }
+  def readFromLocalCache(symbol:String, maxCacheAge:Int):Option[String] = {
+    var age:Int=0
+
+    do {
+      val f = cacheFileName(symbol, age)
+      if (f.exists()) {
+        log.info(s"Reading rawdata (age=$age days) for symbol $symbol from local cache")
+        val s = Source.fromFile(f)
+        val result = s.mkString
+        s.close()
+        return Option(result)
+      }
+      age += 1
+    } while (age <= maxCacheAge)
+
+    log.info(s"No up-to-date local cache file present for '$symbol'")
+    Option.empty
   }
 }

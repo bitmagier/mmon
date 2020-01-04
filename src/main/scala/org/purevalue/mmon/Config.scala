@@ -22,6 +22,7 @@ object Config {
   def alphavantageApiKey: String = conf.getString("retrieve.alphavantage.api-key")
   def alphavantageApiCallDelay: Duration = conf.getDuration("retrieve.alphavantage.api-call-delay")
   def alphavantageCacheDir:String = conf.getString("retrieve.alphavantage.cache-dir")
+  def maxCacheAge:Int = conf.getInt("retrieve.max-cache-age")
   def maxMissingCompanies:Int = conf.getInt("retrieve.max-missing-companies")
 
   def influxdbHostname: String = conf.getString("influxdb.hostname")
