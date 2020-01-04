@@ -3,7 +3,6 @@ TODO
 
 coding
 -
-* provide a config option to use up to x days older cached data too (default=3) 
 * Support a list of API-Keys to be used in round robin
 * Automate creation of grafana dashboard(s)
 

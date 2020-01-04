@@ -195,11 +195,24 @@ class InfluxDbClient(val hostName: String, val dbName: String) {
     }
   }
 
-  def writeIndicator(i: Indicator, v: List[DayValue]): Unit = {
+  def logInvalidValues(i:Indicator, values: List[DayValue], invalidsFilter: DayValue => Boolean):Unit = {
+    val invalids = values.filter(invalidsFilter)
+    if (invalids.size == 1) {
+      log.warn(s"Found invalid value (${invalids.head}) for indicator ${i.name}")
+    } else if (invalids.size > 1) {
+      log.warn(s"Found ${invalids.size} values for indicator ${i.name}")
+    }
+  }
+
+  def writeIndicator(i: Indicator, values: List[DayValue]): Unit = {
     try {
       open()
+      val invalidsFilter: (DayValue) => Boolean = { v => v.value.isNaN || v.value.isInfinity }
+      logInvalidValues(i, values, invalidsFilter)
       log.info(s"Writing indicator '${i.name}' into influxdb")
-      val points = v.map(v => toIndicatorPoint(i, v))
+      val points = values
+        .filterNot(invalidsFilter)
+        .map(v => toIndicatorPoint(i, v))
       if (Await.result(
         db.bulkWrite(points, PrecisionOfQuotes, Consistency.QUORUM),
         AsyncWriteTimeout)) {
