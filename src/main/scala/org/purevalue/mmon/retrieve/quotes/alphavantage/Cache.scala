@@ -41,7 +41,7 @@ private[alphavantage] object Cache {
     do {
       val f = cacheFileName(symbol, age)
       if (f.exists()) {
-        log.info(s"Reading rawdata (age=$age days) for symbol $symbol from local cache")
+        log.info(s"Reading rawdata (age: $age days) for symbol $symbol from local cache")
         val s = Source.fromFile(f)
         val result = s.mkString
         s.close()
