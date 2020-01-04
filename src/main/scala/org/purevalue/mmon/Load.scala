@@ -3,8 +3,8 @@ package org.purevalue.mmon
 import java.time.LocalDate
 
 import org.purevalue.mmon.indicator.{DayValue, Indicator, Indicators}
-import org.purevalue.mmon.retrieve.Retriever
-import org.purevalue.mmon.retrieve.quotes.alphavantage.{AlphavantageCoRetriever, UnknownSymbolException}
+import org.purevalue.mmon.retrieve.quotes.alphavantage.AlphavantageCoRetriever
+import org.purevalue.mmon.retrieve.{Retriever, UnknownSymbolException}
 import org.purevalue.mmon.tsdb.{Influx, InfluxDbClient}
 import org.slf4j.LoggerFactory
 
@@ -48,7 +48,6 @@ object Load {
       .foreach { c =>
         try {
           val ts = retriever.retrieveFull(c.symbol)
-          //          val continuousTs = addMissingDays(ts)
           db.writeQuotes(c, ts)
         } catch {
           case UnknownSymbolException(_) => {

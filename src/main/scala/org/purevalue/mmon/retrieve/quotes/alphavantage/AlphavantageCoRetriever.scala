@@ -5,15 +5,13 @@ import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.{Duration, LocalDate, LocalDateTime}
 
 import io.circe.{Decoder, HCursor, Json, parser}
-import org.purevalue.mmon.retrieve.Retriever
 import org.purevalue.mmon._
+import org.purevalue.mmon.retrieve.{Retriever, UnknownSymbolException}
 import org.slf4j.LoggerFactory
 
 import scala.io.{BufferedSource, Source}
 
-case class UnknownSymbolException(rawData: String) extends Exception(rawData)
-
-class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedData: Boolean = false) extends Retriever {
+class AlphavantageCoRetriever(useTestResponse: Option[String] = None, preferLocalCachedData: Boolean = false) extends Retriever {
   private val log = LoggerFactory.getLogger(classOf[AlphavantageCoRetriever])
   private var lastApiCallTime: LocalDateTime = _
 
@@ -22,35 +20,8 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   private val MaxApiCallRate = Config.alphavantageApiCallDelay
 
 
-  private val SampleData =
-    """{
-  "Meta Data": {
-    "1. Information": "Daily Prices (open, high, low, close) and Volumes",
-    "2. Symbol": "MSFT",
-    "3. Last Refreshed": "2019-09-13 13:14:34",
-    "4. Output Size": "Full size",
-    "5. Time Zone": "US/Eastern"
-  },
-  "Time Series (Daily)": {
-    "2019-09-13": {
-      "1. open": "137.7800",
-      "2. high": "138.0600",
-      "3. low": "136.5700",
-      "4. close": "137.4300",
-      "5. volume": "5927284"
-    },
-    "2019-09-12": {
-      "1. open": "137.8500",
-      "2. high": "138.4200",
-      "3. low": "136.8700",
-      "4. close": "137.5200",
-      "5. volume": "24854822"
-    }
-  }
-}"""
-
   private def getRawData(symbol: String): (String, Boolean) = {
-    if (useSampleData) (SampleData, false)
+    if (useTestResponse.isDefined) (useTestResponse.get, false)
     else if (preferLocalCachedData) {
       val cache = Cache.readFromLocalCache(symbol)
       if (cache.isDefined) (cache.get, false)
@@ -59,7 +30,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
   }
 
   def decodeAndThrowError(rawData: String): Unit = {
-    if (rawData.contains(s""""Invalid API call. Please retry""")) {
+    if (rawData.contains(""""Invalid API call. Please retry""")) {
       throw UnknownSymbolException(rawData)
     } else {
       throw new Exception(rawData)
@@ -68,7 +39,7 @@ class AlphavantageCoRetriever(useSampleData: Boolean = false, preferLocalCachedD
 
   override def retrieveFull(symbol: String): TimeSeriesDaily = {
     val (rawData, isFreshData) = getRawData(symbol)
-    if (rawData.matches("\\{\\s*\"Error Message\":.*")) {
+    if (rawData.contains(""""Error Message":""")) {
       decodeAndThrowError(rawData)
     }
     val result = parse(rawData)

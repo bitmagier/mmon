@@ -17,13 +17,14 @@ coding
 
 * Support a list of API-Keys to be used in round robin
 
-* When API-Rate-limit is solved:
-    * Enable the full S&P 500 base 
-
 * Automate creation of grafana dashboard(s)
 
 other
 -
 - Secure access setup (HTTPS + Authentification) for grafana production
 
-- Solution for API rate limit [premium api-key costs $29.99/month ;-)]
+We need a more solid Quote-API. Current limitations:
+-
+  - Arbitrary failures: Sometimes a company-symbol from S&P 500 cannot be retrieved any more
+  - API rate limit [premium api-key costs $29.99/month ;-)]
+
