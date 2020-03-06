@@ -21,32 +21,6 @@ docker run -d --name=influxdb \
 # notes:
 # database name: mmon
 
-# chronograf
-# see https://docs.docker.com/samples/library/chronograf/
-#mkdir -p "$dataRoot/chronograf"
-#docker run -d --name=chronograf \
-#      -p 8888:8888 \
-#      --net=influxdb \
-#      -v "$dataRoot/chronograf":/var/lib/chronograf \
-#      chronograf:1.7 --influxdb-url=http://influxdb:8086
-
-# NOT YET USED
-#mkdir -p "$dataRoot/kapacitor"
-#docker run -d --name=kapacitor \
-#    -h kapacitor \
-#    --net=influxdb \
-#    -v "$dataRoot/kapacitor:/var/lib/kapacitor" \
-#    -e KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086 \
-#    kapacitor:1.5
-##    -p 9092:9092 \
-
-# UNUSED
-#mkdir -p "$dataRoot/telegraf"
-#docker run -d --name=telegraf \
-#      --net=influxdb \
-#      -v "$base/telegraf.conf:/etc/telegraf/telegraf.conf:ro" \
-#      telegraf:1.12
-
 docker run -d --name=grafana \
   -p 3000:3000 \
   --net=influxdb \
